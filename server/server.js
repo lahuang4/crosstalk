@@ -1,22 +1,20 @@
-var messages = require("./messages.js");
+var bodyParser = require('body-parser');
+var express = require('express');
 
-var http = require("http");
+var app = express();
 
-const PORT = 8080;
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
 
-// Parse request and call a callback depending on the request
-function handleRequest(request, response) {
-  // Anti-entropy messaging
-  // Hash chat logs to compare them?
-	if (request.url == "/sendMessage") {
-		messages.sendMessage(request, response);
-	} else {
-		response.end("Hello! Path hit: " + request.url);
-	}
-}
-
-var server = http.createServer(handleRequest);
-
-server.listen(PORT, function() {
-	console.log("Server listening on: http://localhost:%s", PORT);
+app.get('/user', function(req, res) {
+  res.send('hello ' + req.query.username);
 });
+
+app.post('/user', function(req, res) {
+  console.log('got the body: ');
+  console.log(req.body);
+
+  res.send('POST request');
+});
+
+app.listen(3000);
