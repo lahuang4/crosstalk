@@ -7,7 +7,7 @@ var Node = function(value) {
   node._id = shortid.generate();
   node.parents = new Set();
   node.children = new Set();
-  node.value = value || "";
+  node.value = value || "root";
 
   // add a parent node to this node
   node.addParent = function(parentNode) {
@@ -15,8 +15,8 @@ var Node = function(value) {
       throw "Unexpected parentNode type: " + parentNode.constructor.name;
     }
 
-    if (!node.parents.has(parentNode)) {
-      node.parents.add(parentNode);
+    if (!node.parents.has(parentNode._id)) {
+      node.parents.add(parentNode._id);
       parentNode.addChild(node);
     }
   }
@@ -27,8 +27,8 @@ var Node = function(value) {
       throw "Unexpected childNode type: " + childNode.constructor.name;
     }
 
-    if (!node.children.has(childNode)) {
-      node.children.add(childNode);
+    if (!node.children.has(childNode._id)) {
+      node.children.add(childNode._id);
       childNode.addParent(node);
     }
   }
@@ -47,37 +47,9 @@ var Node = function(value) {
       return false;
     }
 
-    if (node._id !== otherNode._id) {
-      return false;
-    }
-
-    var childrenIDs = new Set();
-    var otherChildrenIDs = new Set();
-    node.children.forEach(function(child) {
-      childrenIDs.add(child._id);
-    });
-    otherNode.children.forEach(function(child) {
-      otherChildrenIDs.add(child._id);
-    });
-
-    if (!_.isEqual(childrenIDs, otherChildrenIDs)) {
-      return false;
-    }
-
-    var parentIDs = new Set();
-    var otherParentIDs = new Set();
-    node.parents.forEach(function(parent) {
-      parentIDs.add(parent._id);
-    });
-    otherNode.parents.forEach(function(parent) {
-      otherParentIDs.add(parent._id);
-    });
-
-    if (!_.isEqual(parentIDs, otherParentIDs)) {
-      return false;
-    }
-
-    return true;
+    return node._id === otherNode._id &&
+      _.isEqual(node.children, otherNode.children) &&
+      _.isEqual(node.parents, otherNode.parents);
   }
 
   return node;
