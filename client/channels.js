@@ -18,11 +18,11 @@ exports.createChannel = function(channel) {
     },
     function(err, res, body) {
       if (!err && res.statusCode == 200) {
-        if (res.body.success) {
+        if (body.success) {
           // Get the members in the channel.
-          client.channels[channel] = res.body.members;
-          console.log("Successfully created channel " + channel + ", which has members " + res.body.members + ".");
-        } else if (res.body.channel_exists) {
+          client.channels[channel] = body.members;
+          console.log("Successfully created channel " + channel + ", which has members " + body.members + ".");
+        } else if (body.channel_exists) {
           // If the channel exists already, we're set.
           console.log("Channel " + channel + " already exists.")
         } else {
@@ -49,11 +49,11 @@ exports.joinChannel = function(channel) {
     },
     function(err, res, body) {
       if (!err && res.statusCode == 200) {
-        if (res.body.success) {
+        if (body.success) {
           // Get the members in the channel.
-          client.channels[channel] = res.body.members;
-          console.log("Successfully joined channel " + channel + ", which has members " + res.body.members + ".");
-        } else if (!res.body.channel_exists) {
+          client.channels[channel] = body.members;
+          console.log("Successfully joined channel " + channel + ", which has members " + body.members + ".");
+        } else if (!body.channel_exists) {
           // If the channel didn't exist, we create it.
           exports.createChannel(channel);
         } else {
@@ -81,12 +81,12 @@ exports.leaveChannel = function(channel) {
     },
     function(err, res, body) {
       if (!err && res.statusCode == 200) {
-        if (res.body.success) {
+        if (body.success) {
           client.channels[channel] = {};
           console.log("Successfully left channel " + channel + ".");
-        } else if (res.body.channel_exists && !res.body.user_in_channel) {
+        } else if (body.channel_exists && !body.user_in_channel) {
           console.log("User was not a member of channel " + channel + ".");
-        } else if (!res.body.channel_exists) {
+        } else if (!body.channel_exists) {
           console.log("Channel " + channel + " does not exist.");
         } else {
           console.log("An unhandled error occurred.")
