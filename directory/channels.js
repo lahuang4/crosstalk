@@ -7,15 +7,17 @@ channels = {};
 exports.createChannel = function(req, res) {
   var channel = req.body.channel;
   var user = req.body.user;
+  var address = req.body.address;
 
-  console.log("Received a request to create channel " + channel + ". Does it already exist? " + channel in channels);
+  console.log("Received a request from " + user + " to create channel " + channel + ".");
 
   if (!(channel in channels)) {
     // Create the channel and put the user in its member list
-    channels[channel] = [user];
-    res.json({ members: channels[channel] });
+    channels[channel] = {};
+    channels[channel][user] = address;
+    res.json({ success: true, members: channels[channel] });
   } else {
-    res.json({ error: "Channel " + channel + " already exists." });
+    res.json({ success: false, channel_exists: true });
   }
 }
 
@@ -24,20 +26,16 @@ exports.createChannel = function(req, res) {
 exports.joinChannel = function(req, res) {
   var channel = req.body.channel;
   var user = req.body.user;
+  var address = req.body.address;
 
-  console.log("Received a request to join channel " + channel + ", which has members " + channels[channel] + ".");
+  console.log("Received a request from " + user + " to join channel " + channel + ".");
 
   if (channel in channels) {
     // Add the user to the member list of this channel
-    console.log("Is user " + user + " already in channel " + channel + "? " + (channels[channel].indexOf(user) != -1));
-    if (channels[channel].indexOf(user) == -1) {
-      channels[channel].push(user);
-      res.json({ members: channels[channel] });    
-    } else {
-      res.json({ error: "User " + user + " is already in channel " + channel + "." });
-    }
+    channels[channel][user] = address;
+    res.json({ success: true, members: channels[channel] });
   } else {
-    res.json({ error: "Channel " + channel + " does not exist." });
+    res.json({ success: false, channel_exists: false });
   }
 }
 
@@ -48,18 +46,17 @@ exports.leaveChannel = function(req, res) {
   var user = req.body.user;
   var userIndex;
 
-  console.log("Received a request to leave channel " + channel + ", which has members " + channels[channel] + ".");
+  console.log("Received a request from " + user + " to leave channel " + channel + ".");
 
   if (channel in channels) {
     // Remove the user from the member list of this channel
-    userIndex = channels[channel].indexOf(user);
-    if (userIndex > -1) {
-      channels[channel].splice(userIndex, 1);
+    if (user in channels[channel]) {
+      delete channels[channel][user];
       res.json({ success: true });
     } else {
-      res.json({ error: "User " + user + " was not in channel " + channel + "." });
+      res.json({ success: false, channel_exists: true, user_in_channel: false });
     }
   } else {
-    res.json({ error: "Channel " + channel + " does not exist." });
+    res.json({ success: false, channel_exists: false, user_in_channel: false });
   }
 }
