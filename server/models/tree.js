@@ -59,7 +59,7 @@ var Tree = function() {
         if (!(parentID in tree.directory)) {
           var copiedNode = peerTree.directory[parentID].clone();
           tree.directory[parentID] = copiedNode;
-          nodesToProcess.push(parentID)
+          nodesToProcess.push(parentID);
         }
         tree.directory[nodeID].addParent(tree.directory[parentID]);
         tree.leaves.delete(parentID);
