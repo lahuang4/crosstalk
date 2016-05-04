@@ -1,8 +1,8 @@
 var exports = module.exports = {};
 
-var request = require('request');
+var request = require("request");
 
-var client = require('./client.js');
+var client = require("./client.js");
 var Node = require("../server/models/node.js");
 var Tree = require("../server/models/tree.js");
 
@@ -11,16 +11,13 @@ exports.sendMessageToChannel = function(channel, msg) {
   msg = client.username + ": " + msg;
 
   // Add message to my log.
-  node = new Node(msg);
+  var node = new Node(msg);
   client.log.leaves.forEach(function(leaf, index) {
     client.log.directory[leaf].addChild(node);
-    node.addParent(client.log.directory[leaf]);
   });
   client.log.directory[node._id] = node;
-  client.log.leaves = new Set();
-  client.log.leaves.add(node._id);
-
-  console.log("Added message to my log. My directory: " + JSON.stringify(client.log.directory));
+  client.log.leaves = [];
+  client.log.leaves.push(node._id);
 
   // Send out message to everyone else.
   var members = client.channels[channel];
@@ -28,13 +25,15 @@ exports.sendMessageToChannel = function(channel, msg) {
   Object.keys(members).forEach(function(user, index) {
     if (user != client.username) {
       address = members[user];
-      sendMessage(address, client.username, msg);    
+      sendMessageToUser(address, client.username, msg);
     }
   });
 }
 
-sendMessage = function(dst, user, msg) {
+// Sends message to the particular destination.
+sendMessageToUser = function(dst, user, msg) {
   console.log("Sending message " + msg + " to " + dst + "/sendMessage");
+  console.log("Sending client log: \n" + JSON.stringify(client.log));
   request.post(
     dst + "/sendMessage",
     {
@@ -46,7 +45,15 @@ sendMessage = function(dst, user, msg) {
     },
     function(err, res, body) {
       if (!err && res.statusCode == 200) {
-        console.log("Received response body " + JSON.stringify(body))
+        console.log("Received response body " + JSON.stringify(body));
+
+        // Parse the object into a Tree.
+        var peerLog = new Tree(body.log);
+
+        // Merge the returned log with my log.
+        client.log.merge(peerLog);
+
+        console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
       }
     }
   );

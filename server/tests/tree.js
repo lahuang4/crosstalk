@@ -26,16 +26,16 @@ var TestSmallSubtree = function() {
   tree1.directory[a._id] = a;
   tree1.directory[b._id] = b;
   tree1.directory[c._id] = c;
-  tree1.leaves.delete(tree1.root._id);
-  tree1.leaves.add(c._id);
+  tree1.leaves.splice(tree1.leaves.indexOf(tree1.root._id), 1);
+  tree1.leaves.push(c._id);
 
   // a -> b
   tree2.root.addChild(aCopy);
   aCopy.addChild(bCopy);
   tree2.directory[a._id] = a;
   tree2.directory[b._id] = b;
-  tree2.leaves.delete(tree2.root._id);
-  tree2.leaves.add(b._id);
+  tree2.leaves.splice(tree2.leaves.indexOf(tree2.root._id), 1);
+  tree2.leaves.push(b._id);
 
   tree2.merge(tree1);
 

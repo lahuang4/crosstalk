@@ -12,8 +12,8 @@ var TestAddParent = function() {
 
   a.addParent(b);
 
-  assert(a.parents.has(b._id), "a's parents do not include b's ID");
-  assert(b.children.has(a._id), "b's children do not include a's ID");
+  assert(a.parents.indexOf(b._id) > -1, "a's parents do not include b's ID");
+  assert(b.children.indexOf(a._id) > -1, "b's children do not include a's ID");
 }
 
 var TestAddChild = function() {
@@ -22,8 +22,8 @@ var TestAddChild = function() {
 
   a.addChild(b);
 
-  assert(a.children.has(b._id), "a's children do not include b's ID");
-  assert(b.parents.has(a._id), "b's parents do not include a's ID");
+  assert(a.children.indexOf(b._id) > -1, "a's children do not include b's ID");
+  assert(b.parents.indexOf(a._id) > -1, "b's parents do not include a's ID");
 }
 
 var TestEquality = function() {

@@ -1,15 +1,26 @@
 var _ = require("lodash");
+
 var Node = require("./node.js");
 
-var Tree = function() {
+var Tree = function(obj) {
   var tree = Object.create(Tree.prototype);
 
   tree.root = new Node(); // initialize a dummy root node
-  tree.leaves = new Set();
-  tree.leaves.add(tree.root._id);
+  tree.root._id = "0"; // All root nodes have the same id
+  tree.leaves = [];
+  tree.leaves.push(tree.root._id);
   tree.directory = {};
   tree.directory[tree.root._id] = tree.root;
   tree.versions = {};
+
+  if (obj) {
+    for (var prop in obj) {
+      tree[prop] = obj[prop];
+    }
+    for (var node in tree.directory) {
+      tree.directory[node] = new Node(tree.directory[node].value, tree.directory[node]);
+    }
+  }
 
   tree.merge = function(peerTree) {
     if (!(peerTree instanceof Tree)) {
@@ -50,7 +61,9 @@ var Tree = function() {
         tree.directory[leafID] = copiedNode;
         nodesToProcess.push(leafID);
       }
-      tree.leaves.add(leafID);
+      if (tree.leaves.indexOf(leafID) === -1) {
+        tree.leaves.push(leafID);
+      }
     });
 
     for (var i=0; i<nodesToProcess.length; i++) {
@@ -62,7 +75,10 @@ var Tree = function() {
           nodesToProcess.push(parentID);
         }
         tree.directory[nodeID].addParent(tree.directory[parentID]);
-        tree.leaves.delete(parentID);
+        // Remove parentID from leaves.
+        if (tree.leaves.indexOf(parentID) > -1) {
+          tree.leaves.splice(tree.leaves.indexOf(parentID), 1);
+        }
       });
     }
 

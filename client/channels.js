@@ -1,8 +1,8 @@
 var exports = module.exports = {};
 
-var request = require('request');
+var request = require("request");
 
-var client = require('./client.js');
+var client = require("./client.js");
 
 // Requests the directory to create a new channel, and updates the membership list for that channel upon success.
 exports.createChannel = function(channel) {
@@ -60,6 +60,8 @@ exports.joinChannel = function(channel) {
             // Get the members in the channel.
             client.channels[channel] = body.members;
             console.log("Successfully joined channel " + channel + ", which has members " + body.members + ".");
+
+            // TODO: Get the latest version of the log from somebody.
 
             resolve(body.members);
           } else if (!body.channel_exists) {

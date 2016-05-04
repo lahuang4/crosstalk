@@ -1,13 +1,19 @@
 var shortid = require("shortid");
 var _ = require("lodash");
 
-var Node = function(value) {
+var Node = function(value, obj) {
   var node = Object.create(Node.prototype);
   
   node._id = shortid.generate();
-  node.parents = new Set();
-  node.children = new Set();
+  node.parents = [];
+  node.children = [];
   node.value = value || "root";
+
+  if (obj) {
+    for (var prop in obj) {
+      node[prop] = obj[prop];
+    }
+  }
 
   // add a parent node to this node
   node.addParent = function(parentNode) {
@@ -15,8 +21,8 @@ var Node = function(value) {
       throw "Unexpected parentNode type: " + parentNode.constructor.name;
     }
 
-    if (!node.parents.has(parentNode._id)) {
-      node.parents.add(parentNode._id);
+    if (node.parents.indexOf(parentNode._id) === -1) {
+      node.parents.push(parentNode._id);
       parentNode.addChild(node);
     }
   }
@@ -27,8 +33,8 @@ var Node = function(value) {
       throw "Unexpected childNode type: " + childNode.constructor.name;
     }
 
-    if (!node.children.has(childNode._id)) {
-      node.children.add(childNode._id);
+    if (node.children.indexOf(childNode._id) === -1) {
+      node.children.push(childNode._id);
       childNode.addParent(node);
     }
   }
@@ -48,8 +54,8 @@ var Node = function(value) {
     }
 
     return node._id === otherNode._id &&
-      _.isEqual(node.children, otherNode.children) &&
-      _.isEqual(node.parents, otherNode.parents);
+      _.isEqual(new Set(node.children), new Set(otherNode.children)) &&
+      _.isEqual(new Set(node.parents), new Set(otherNode.parents));
   }
 
   return node;
