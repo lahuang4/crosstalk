@@ -115,12 +115,18 @@ $(document).ready(function() {
 
     if ($("#message-input").val()) {
       // Send the message out.
-      // TODO: Send the message out to the other peers in the channel.
+      $.post(server + "/sendMessage",
+      {
+        username: client.username,
+        msg: $("#message-input").val()
+      })
+      .done(function(data) {
+        console.log("I received a response: \n" + JSON.stringify(data));
 
-      addMessage($("#message-input").val());
-
-      // Clear the message from the textbox.
-      $("#message-input").val("");
+        addMessage(data);
+        // Clear the message from the textbox.
+        $("#message-input").val("");
+      });
     }
   });
 });

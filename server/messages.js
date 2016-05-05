@@ -26,7 +26,7 @@ exports.receiveMessage = function(req, res) {
 }
 
 // Syncs the log and chat channel members list.
-exports.receiveMessage = function(req, res) {
+exports.sync = function(req, res) {
   var user = req.body.user;
   var members = req.body.members;
   var log = req.body.log;
@@ -47,8 +47,8 @@ exports.receiveMessage = function(req, res) {
 }
 
 // Sends message to everyone in the channel.
-exports.sendMessageToChannel = function(channel, msg) {
-  msg = client.username + ": " + msg;
+exports.sendMessageToChannel = function(req, response) {
+  var msg = client.username + ": " + req.body.msg;
 
   // Add message to my log.
   var node = new Node(msg);
@@ -60,7 +60,7 @@ exports.sendMessageToChannel = function(channel, msg) {
   client.log.leaves.push(node._id);
 
   // Send out message to everyone else.
-  var members = client.channels[channel];
+  var members = client.channels[client.channel];
   var address;
   Object.keys(members).forEach(function(user, index) {
     if (user != client.username) {
@@ -68,14 +68,17 @@ exports.sendMessageToChannel = function(channel, msg) {
       sendMessageToUser(address, msg);
     }
   });
+
+  // TODO: need to wait for all messages to go out (or at least attempt) before we continue on
+  response.send(msg);
 }
 
 // Sends message to the particular destination.
 sendMessageToUser = function(dst, msg) {
-  console.log("Sending message " + msg + " to " + dst + "/sendMessage");
+  console.log("Sending message " + msg + " to " + dst + "/receiveMessage");
   console.log("Sending client log: \n" + JSON.stringify(client.log));
   request.post(
-    dst + "/sendMessage",
+    dst + "/receiveMessage",
     {
       json: {
         user: client.username,

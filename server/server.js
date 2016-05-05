@@ -15,12 +15,12 @@ app.use(cors());
 const PORT = 4000;
 
 // Server methods
-app.post('/sendMessage', function(req, res) {
+app.post('/receiveMessage', function(req, res) {
   messages.receiveMessage(req, res);
 });
 
 app.post('/sync', function(req, res) {
-  messages.receiveMessage(req, res);
+  messages.sync(req, res);
 });
 
 // Client information
@@ -42,6 +42,10 @@ app.post('/joinChannel', function(req, res) {
 
 app.post('/leaveChannel', function(req, res) {
   channels.leaveChannel(req, res);
+});
+
+app.post('/sendMessage', function(req, res) {
+  messages.sendMessageToChannel(req, res);
 });
 
 app.listen(PORT);
