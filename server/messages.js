@@ -65,12 +65,15 @@ exports.sendMessageToChannel = function(req, response) {
   Object.keys(members).forEach(function(user, index) {
     if (user != client.username) {
       address = members[user];
+      // TODO: if we can't reach a user, re-try it, but respond to the sender too so they don't have to wait
       sendMessageToUser(address, msg);
     }
   });
 
-  // TODO: need to wait for all messages to go out (or at least attempt) before we continue on
-  response.send(msg);
+  response.json({
+    msg: msg,
+    log: client.log
+  });
 }
 
 // Sends message to the particular destination.

@@ -4,7 +4,32 @@ var server = "http://localhost:4000";
 
 // Refresh the chat log with the latest messages.
 function refreshChatLog() {
-  // TODO: Acquire the chat log for this channel and update the chat box.
+  $.post(server + "/getLog",
+  {
+    // TODO: Maybe some sort of authorization in the future to make these channels more secure?
+    channel: client.channel
+  })
+  .done(function(data) {
+    // Refresh the displayed chat messages.
+    client.log = data.log;
+    console.log("I got chat log " + JSON.stringify(client.log));
+    displayChatLog(client.log);
+  });
+}
+
+// Display the chat log in the chat box.
+function displayChatLog(log) {
+  // Clear the messages currently displayed in the chat box.
+  $("#chat-box-content").text("");
+
+  // Iterate through the tree and add messages.
+  var node = log.root;
+  // Iterate down a single path for now...
+  // TODO: Display branches side-by-side
+  while (node.children.length > 0) {
+    node = log.directory[node.children[0]];
+    addMessage(node.value);
+  }
 }
 
 // Add a single message to the chat box.
@@ -20,6 +45,12 @@ $(document).ready(function() {
   $("#channel").hide();
   $("#chat-box").hide();
   $("#message").hide();
+
+  // Refresh the chat log once in a while to receive new updates if we haven't been sending anything.
+  // TODO: Push notifications instead of having to poll for updates?
+  setInterval(function() {
+    refreshChatLog();
+  }, 1000);
 
   $("#user-input").keyup(function(event) {
     if(event.keyCode == 13) {
@@ -123,7 +154,10 @@ $(document).ready(function() {
       .done(function(data) {
         console.log("I received a response: \n" + JSON.stringify(data));
 
-        addMessage(data);
+        // Display the updated log.
+        client.log = data.log;
+        displayChatLog(client.log);
+
         // Clear the message from the textbox.
         $("#message-input").val("");
       });

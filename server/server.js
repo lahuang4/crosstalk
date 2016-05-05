@@ -48,6 +48,15 @@ app.post('/sendMessage', function(req, res) {
   messages.sendMessageToChannel(req, res);
 });
 
+app.post('/getLog', function(req, res) {
+  res.json({
+    username: exports.username,
+    channel: exports.channel,
+    members: exports.channels[exports.channel],
+    log: exports.log
+  });
+});
+
 app.listen(PORT);
 console.log("Running server on on port %s", PORT);
 
