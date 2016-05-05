@@ -1,5 +1,7 @@
 var exports = module.exports = {};
 
+var request = require("request");
+
 var client = require("./server.js");
 var Tree = require("./models/tree.js");
 var Node = require("./models/node.js");
@@ -23,6 +25,27 @@ exports.receiveMessage = function(req, res) {
   res.json({ success: true, log: client.log });
 }
 
+// Syncs the log and chat channel members list.
+exports.receiveMessage = function(req, res) {
+  var user = req.body.user;
+  var members = req.body.members;
+  var log = req.body.log;
+
+  console.log("Received chat log: \n" + JSON.stringify(log));
+
+  // Parse the log object into a Tree.
+  var peerLog = new Tree(log);
+
+  // Merge the log with my log.
+  client.log.merge(peerLog);
+
+  console.log("My log after merging: \n" + JSON.stringify(client.log));
+
+  // TODO: Merge chat channel members as well.
+
+  res.json({ success: true, log: client.log });
+}
+
 // Sends message to everyone in the channel.
 exports.sendMessageToChannel = function(channel, msg) {
   msg = client.username + ": " + msg;
@@ -42,20 +65,20 @@ exports.sendMessageToChannel = function(channel, msg) {
   Object.keys(members).forEach(function(user, index) {
     if (user != client.username) {
       address = members[user];
-      sendMessageToUser(address, client.username, msg);
+      sendMessageToUser(address, msg);
     }
   });
 }
 
 // Sends message to the particular destination.
-sendMessageToUser = function(dst, user, msg) {
+sendMessageToUser = function(dst, msg) {
   console.log("Sending message " + msg + " to " + dst + "/sendMessage");
   console.log("Sending client log: \n" + JSON.stringify(client.log));
   request.post(
     dst + "/sendMessage",
     {
       json: {
-        user: user,
+        user: client.username,
         message: msg,
         log: client.log
       }
@@ -71,6 +94,36 @@ sendMessageToUser = function(dst, user, msg) {
         client.log.merge(peerLog);
 
         console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
+      }
+    }
+  );
+}
+
+// Syncs chat log and chat channel members with another user.
+exports.syncWithUser = function(dst) {
+  console.log("Syncing with user at address " + dst);
+  request.post(
+    dst + "/sync",
+    {
+      json: {
+        user: client.username,
+        members: client.channels[client.channel],
+        log: client.log
+      }
+    },
+    function(err, res, body) {
+      if (!err && res.statusCode == 200) {
+        console.log("Received response body " + JSON.stringify(body));
+
+        // Parse the object into a Tree.
+        var peerLog = new Tree(body.log);
+
+        // Merge the returned log with my log.
+        client.log.merge(peerLog);
+
+        console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
+
+        // TODO: Merge chat channel members lists as well.
       }
     }
   );
