@@ -14,17 +14,7 @@ app.use(cors());
 
 const PORT = 4000;
 
-app.get('/user', function(req, res) {
-  res.send('hello ' + req.query.username);
-});
-
-app.post('/user', function(req, res) {
-  console.log('got the body: ');
-  console.log(req.body);
-
-  res.send('POST request');
-});
-
+// Server methods
 app.post('/sendMessage', function(req, res) {
   messages.receiveMessage(req, res);
 });
@@ -36,6 +26,7 @@ exports.channels = {};
 exports.directory = "http://localhost:5000";
 exports.log = new Tree();
 
+// Client methods
 app.post('/login', function(req, res) {
   users.login(req, res);
 });

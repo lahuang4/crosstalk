@@ -5,7 +5,7 @@ var request = require("request");
 var client = require("./server.js");
 
 // Requests the directory to create a new channel, and updates the membership list for that channel upon success.
-exports.createChannel = function(req, response) {
+createChannel = function(req, response) {
   var channel = req.body.channel;
   console.log("Trying to create channel " + channel + ".");
   request.post(
@@ -32,7 +32,7 @@ exports.createChannel = function(req, response) {
           response.send("An unhandled error occurred.");
         }
       } else {
-        exports.createChannel(channel);
+        createChannel(channel);
       }
     }
   );
@@ -63,7 +63,7 @@ exports.joinChannel = function(req, response) {
           response.json(body);
         } else if (!body.channel_exists) {
           // If the channel didn't exist, we create it.
-          exports.createChannel(req, response);
+          createChannel(req, response);
         } else {
           response.send("An unhandled error occurred.");
         }
