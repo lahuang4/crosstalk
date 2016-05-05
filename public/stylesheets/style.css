@@ -5,3 +5,12 @@ body {
 a {
   color: #00b7ff;
 }
+input {
+  margin: 5px;
+}
+button {
+  margin: 5px;
+}
+#chat-box-header {
+  font-size: 20pt;
+}

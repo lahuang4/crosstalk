@@ -2,4 +2,18 @@ extends layout
 
 block content
   h1= title
-  p Welcome to #{title}
+
+block gui
+  p(id="greeting") Hello, please log in.
+  p(id="user")
+    input(type="text", id="user-input")
+    button(id="user-button") Login
+  p(id="channel")
+    input(type="text", id="channel-input")
+    button(id="channel-button") Join channel
+  div(id="chat-box")
+    div(id="chat-box-header")
+    div(id="chat-box-content")
+  div(id="message")
+    input(type="text", id="message-input")
+    button(id="message-button") Send message
