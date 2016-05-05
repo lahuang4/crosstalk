@@ -45,21 +45,21 @@ $(document).ready(function() {
     if ($("#user-input").val()) {
       // Check to make sure nobody else has taken this username.
       $.post(server + "/login",
-        {
-          username: $("#user-input").val()
-        })
-        .done(function(data) {
-          if (data.success) {
-            // We successfully got the username.
-            client.username = $("#user-input").val();
+      {
+        username: $("#user-input").val()
+      })
+      .done(function(data) {
+        if (data.success) {
+          // We successfully got the username.
+          client.username = $("#user-input").val();
 
-            // Show the other elements on the page.
-            $("#greeting").text("Hello, " + client.username + "!");
-            $("#user").hide();
-            $("#channel").show();
-          } else {
-            alert("Sorry, this username is already in use.");
-          }
+          // Show the other elements on the page.
+          $("#greeting").text("Hello, " + client.username + "!");
+          $("#user").hide();
+          $("#channel").show();
+        } else {
+          alert("Sorry, this username is already in use.");
+        }
       });
     }
   });
@@ -69,18 +69,27 @@ $(document).ready(function() {
 
     if ($("#channel-input").val()) {
       // Join the channel.
-      // TODO: Make a request to the directory to join the channel.
-      client.channel = $("#channel-input").val();
+      $.post(server + "/joinChannel",
+      {
+        username: client.username,
+        channel: $("#channel-input").val()
+      })
+      .done(function(data) {
+        console.log("Received response: " + JSON.stringify(data));
+        // TODO: use the returned members (display a list of chat members?)
 
-      // Show the other elements on the page.
-      $("#channel").hide();
-      $("#chat-box").show();
-      $("#message").show();
+        client.channel = $("#channel-input").val();
 
-      $("#chat-box-header").text("#" + client.channel);
+        // Show the other elements on the page.
+        $("#channel").hide();
+        $("#chat-box").show();
+        $("#message").show();
 
-      // Acquire the chat log.
-      refreshChatLog();
+        $("#chat-box-header").text("#" + client.channel);
+
+        // Acquire the chat log.
+        refreshChatLog();
+      });
     }
   });
 

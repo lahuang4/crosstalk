@@ -5,10 +5,12 @@ var request = require("request");
 var client = require("./server.js");
 
 // Logs in a user, if that username is not already taken.
-exports.login = function(req, result) {
+exports.login = function(req, response) {
   console.log("Req is " + JSON.stringify(req.body));
   var username = req.body.username;
   console.log("Attempting to log in user " + username);
+
+  // TODO: include address (how would you get this?)
   request.post(
     client.directory + "/login",
     {
@@ -18,7 +20,11 @@ exports.login = function(req, result) {
     },
     function(err, res, body) {
       if (!err && res.statusCode == 200) {
-        result.json(body);
+        if (body.success) {
+          client.username = username;
+          console.log("Logged in as user " + client.username);
+        }
+        response.json(body);
       }
     }
   );

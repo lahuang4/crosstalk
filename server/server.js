@@ -30,7 +30,7 @@ app.post('/sendMessage', function(req, res) {
 });
 
 // Client information
-exports.username = "user1";
+exports.username = "";
 exports.address = "http://localhost:4000";
 exports.channels = {};
 exports.directory = "http://localhost:5000";
@@ -38,6 +38,10 @@ exports.log = new Tree();
 
 app.post('/login', function(req, res) {
   users.login(req, res);
+});
+
+app.post('/joinChannel', function(req, res) {
+  channels.joinChannel(req, res);
 });
 
 app.listen(PORT);
