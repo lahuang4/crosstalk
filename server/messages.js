@@ -65,7 +65,8 @@ exports.sendMessageToChannel = function(req, response) {
   Object.keys(members).forEach(function(user, index) {
     if (user != client.username) {
       address = members[user];
-      // TODO: if we can't reach a user, re-try it, but respond to the sender too so they don't have to wait
+      // TODO: This is asynchronous, so we should be able to reply to the user sending the message immediately.
+      // If we failed to send the message out, we should add that message to the queue of things we need to send to that user and try again later.
       sendMessageToUser(address, msg);
     }
   });
@@ -106,7 +107,15 @@ sendMessageToUser = function(dst, msg) {
 }
 
 // Syncs chat log and chat channel members with another user.
-exports.syncWithUser = function(dst) {
+exports.syncWithRandomPeer = function() {
+  var members = client.channels[client.channel];
+  if (members && Object.keys(members).length > 1) {
+    var address = randomValue(members);
+    console.log("Syncing with member at address " + address + "! members is " + JSON.stringify(members));
+    dst = address;
+  } else {
+    return;
+  }
   console.log("Syncing with user at address " + dst);
   request.post(
     dst + "/sync",
@@ -133,4 +142,9 @@ exports.syncWithUser = function(dst) {
       }
     }
   );
+}
+
+function randomValue(obj) {
+  var keys = Object.keys(obj)
+  return obj[keys[ keys.length * Math.random() << 0]];
 }

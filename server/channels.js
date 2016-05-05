@@ -3,6 +3,7 @@ var exports = module.exports = {};
 var request = require("request");
 
 var client = require("./server.js");
+var messages = require("./messages.js");
 
 // Requests the directory to create a new channel, and updates the membership list for that channel upon success.
 createChannel = function(req, response) {
@@ -23,6 +24,8 @@ createChannel = function(req, response) {
           client.channel = channel;
           client.channels[channel] = body.members;
           console.log("Successfully created channel " + channel + ", which has members " + JSON.stringify(body.members) + ".");
+
+          body.log = client.log;
 
           response.json(body);
         } else if (body.channel_exists) {
@@ -58,9 +61,11 @@ exports.joinChannel = function(req, response) {
           client.channels[channel] = body.members;
           console.log("Successfully joined channel " + channel + ", which has members " + JSON.stringify(body.members) + ".");
 
-          // TODO: Get the latest version of the log from somebody.
+          // Get the latest version of the log from somebody.
+          messages.syncWithRandomPeer();
+          body.log = client.log;
 
-          response.json(body);
+          response.send(body);
         } else if (!body.channel_exists) {
           // If the channel didn't exist, we create it.
           createChannel(req, response);

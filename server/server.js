@@ -61,16 +61,5 @@ app.listen(PORT);
 console.log("Running server on on port %s", PORT);
 
 // Sync log and chat channel members with a random neighbor
-setInterval(function() {
-  var members = exports.channels[exports.channel];
-  if (members && Object.keys(members).length > 1) {
-    var address = randomValue(members);
-    console.log("Syncing with member at address " + address + "! members is " + JSON.stringify(members));
-    messages.syncWithUser(address);
-  }
-}, 1000); // TODO: 500 msec or fewer
+setInterval(messages.syncWithRandomPeer, 1000); // TODO: 500 msec or fewer
 
-function randomValue(obj) {
-  var keys = Object.keys(obj)
-  return obj[keys[ keys.length * Math.random() << 0]];
-}

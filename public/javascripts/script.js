@@ -49,7 +49,9 @@ $(document).ready(function() {
   // Refresh the chat log once in a while to receive new updates if we haven't been sending anything.
   // TODO: Push notifications instead of having to poll for updates?
   setInterval(function() {
-    refreshChatLog();
+    if (client.username && client.channel) {
+      refreshChatLog();
+    }
   }, 1000);
 
   $("#user-input").keyup(function(event) {
@@ -110,6 +112,7 @@ $(document).ready(function() {
         // TODO: use the returned members (display a list of chat members?)
 
         client.channel = $("#channel-input").val();
+        client.log = data.log;
 
         // Show the other elements on the page.
         $("#channel").hide();
@@ -118,8 +121,8 @@ $(document).ready(function() {
 
         $("#chat-box-header").text("#" + client.channel);
 
-        // Acquire the chat log.
-        refreshChatLog();
+        // Display the chat log.
+        displayChatLog(client.log);
       });
     }
   });
