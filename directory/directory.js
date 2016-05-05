@@ -1,13 +1,18 @@
 var bodyParser = require('body-parser');
 var express = require('express');
 
+var users = require("./users.js");
 var channels = require("./channels.js");
 var app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
-const PORT = 3000;
+const PORT = 5000;
+
+app.post('/login', function(req, res) {
+  users.login(req, res);
+});
 
 app.post('/createChannel', function(req, res) {
   channels.createChannel(req, res);

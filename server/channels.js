@@ -2,7 +2,7 @@ var exports = module.exports = {};
 
 var request = require("request");
 
-var client = require("./client.js");
+var client = require("./server.js");
 
 // Requests the directory to create a new channel, and updates the membership list for that channel upon success.
 exports.createChannel = function(channel) {

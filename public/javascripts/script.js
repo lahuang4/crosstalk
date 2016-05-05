@@ -1,5 +1,7 @@
 var client = {};
 
+var server = "http://localhost:4000";
+
 // Refresh the chat log with the latest messages.
 function refreshChatLog() {
   // TODO: Acquire the chat log for this channel and update the chat box.
@@ -42,18 +44,23 @@ $(document).ready(function() {
 
     if ($("#user-input").val()) {
       // Check to make sure nobody else has taken this username.
-      // TODO: Make a request to the directory checking the username.
+      $.post(server + "/login",
+        {
+          username: $("#user-input").val()
+        })
+        .done(function(data) {
+          if (data.success) {
+            // We successfully got the username.
+            client.username = $("#user-input").val();
 
-      // If we're okay, set our username.
-      client.username = $("#user-input").val();
-
-      // If not, we alert the user.
-      // TODO: Display a message "This username is already in use."
-
-      // Show the other elements on the page.
-      $("#greeting").text("Hello, " + client.username + "!");
-      $("#user").hide();
-      $("#channel").show();
+            // Show the other elements on the page.
+            $("#greeting").text("Hello, " + client.username + "!");
+            $("#user").hide();
+            $("#channel").show();
+          } else {
+            alert("Sorry, this username is already in use.");
+          }
+      });
     }
   });
 
