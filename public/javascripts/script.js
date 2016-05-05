@@ -9,7 +9,8 @@ function refreshChatLog() {
 function addMessage(msg) {
   var newDiv = $("<div></div>");
   newDiv.text(msg);
-  $("#chat-box")[0].appendChild(newDiv[0]);
+  $("#chat-box-content")[0].appendChild(newDiv[0]);
+  $("#chat-box-content")[0].scrollTop = $("#chat-box-content")[0].scrollHeight;
 }
 
 $(document).ready(function() {
@@ -17,6 +18,24 @@ $(document).ready(function() {
   $("#channel").hide();
   $("#chat-box").hide();
   $("#message").hide();
+
+  $("#user-input").keyup(function(event) {
+    if(event.keyCode == 13) {
+      $("#user-button").click();
+    }
+  });
+
+  $("#channel-input").keyup(function(event) {
+    if(event.keyCode == 13) {
+      $("#channel-button").click();
+    }
+  });
+
+  $("#message-input").keyup(function(event) {
+    if(event.keyCode == 13) {
+      $("#message-button").click();
+    }
+  });
 
   $("#user-button").click(function() {
     console.log("Login button clicked.");

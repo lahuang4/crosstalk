@@ -14,3 +14,8 @@ button {
 #chat-box-header {
   font-size: 20pt;
 }
+#chat-box-content {
+  height: 600px;
+  overflow-y: auto;
+  margin: 10px 0px;
+}
