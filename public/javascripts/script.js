@@ -93,6 +93,23 @@ $(document).ready(function() {
     }
   });
 
+  $("#leave-channel-button").click(function() {
+    console.log("Leave channel button clicked.");
+
+    $.post(server + "/leaveChannel",
+    {
+      username: client.username,
+      channel: client.channel
+    })
+    .done(function(data) {
+      client.channel = "";
+
+      $("#chat-box").hide();
+      $("#message").hide();
+      $("#channel").show();
+    });
+  });
+
   $("#message-button").click(function() {
     console.log("Send message button clicked.");
 

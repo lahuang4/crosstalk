@@ -44,5 +44,9 @@ app.post('/joinChannel', function(req, res) {
   channels.joinChannel(req, res);
 });
 
+app.post('/leaveChannel', function(req, res) {
+  channels.leaveChannel(req, res);
+});
+
 app.listen(PORT);
 console.log("Running server on on port %s", PORT);
