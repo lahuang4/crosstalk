@@ -4,6 +4,7 @@ var request = require("request");
 
 var client = require("./server.js");
 var messages = require("./messages.js");
+var Tree = require("./models/tree.js");
 
 // Requests the directory to create a new channel, and updates the membership list for that channel upon success.
 createChannel = function(req, response) {

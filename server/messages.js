@@ -93,6 +93,7 @@ sendMessageToUser = function(dst, msg) {
     function(err, res, body) {
       if (!err && res.statusCode == 200) {
         console.log("Received response body " + JSON.stringify(body));
+        client.inactiveUsers.delete(dst);
 
         // Parse the object into a Tree.
         var peerLog = new Tree(body.log);
@@ -101,21 +102,15 @@ sendMessageToUser = function(dst, msg) {
         client.log.merge(peerLog);
 
         console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
+      } else {
+        // We didn't successfully send the message to the user, so we'll try again later.
+        client.inactiveUsers.add(dst);
       }
     }
   );
 }
 
-// Syncs chat log and chat channel members with another user.
-exports.syncWithRandomPeer = function() {
-  var members = client.channels[client.channel];
-  if (members && Object.keys(members).length > 1) {
-    var address = randomValue(members);
-    console.log("Syncing with member at address " + address + "! members is " + JSON.stringify(members));
-    dst = address;
-  } else {
-    return;
-  }
+syncWithPeer = function(dst) {
   console.log("Syncing with user at address " + dst);
   request.post(
     dst + "/sync",
@@ -129,6 +124,7 @@ exports.syncWithRandomPeer = function() {
     function(err, res, body) {
       if (!err && res.statusCode == 200) {
         console.log("Received response body " + JSON.stringify(body));
+        client.inactiveUsers.delete(dst);
 
         // Parse the object into a Tree.
         var peerLog = new Tree(body.log);
@@ -144,7 +140,26 @@ exports.syncWithRandomPeer = function() {
   );
 }
 
+// Syncs chat log and chat channel members with another user.
+exports.syncWithRandomPeer = function() {
+  var members = client.channels[client.channel];
+  if (members && Object.keys(members).length > 1) {
+    var address = randomValue(members);
+    console.log("Syncing with member at address " + address + "! members is " + JSON.stringify(members));
+    dst = address;
+  } else {
+    return;
+  }
+  syncWithPeer(dst);
+}
+
 function randomValue(obj) {
   var keys = Object.keys(obj)
   return obj[keys[ keys.length * Math.random() << 0]];
+}
+
+exports.contactInactiveUsers = function() {
+  client.inactiveUsers.forEach(function(dst) {
+    syncWithPeer(dst);
+  });
 }

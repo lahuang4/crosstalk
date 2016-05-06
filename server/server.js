@@ -32,6 +32,7 @@ exports.channels = {};
 // exports.directory = "http://18.189.75.154:5000";
 exports.directory = "http://localhost:5000";
 exports.log = new Tree();
+exports.inactiveUsers = new Set();
 
 require("externalip")(function (err, ip) {
   exports.address = "http://" + ip + ":4000";
@@ -66,6 +67,8 @@ app.post('/getLog', function(req, res) {
 app.listen(PORT);
 console.log("Running server on on port %s", PORT);
 
-// Sync log and chat channel members with a random neighbor
+// Sync log and chat channel members with a random neighbor.
 setInterval(messages.syncWithRandomPeer, 1000); // TODO: 500 msec or fewer
 
+// Sync latest log with users that were inactive -- users we haven't heard back from upon trying to contact them.
+setInterval(messages.contactInactiveUsers, 3000);
