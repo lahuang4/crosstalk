@@ -98,13 +98,13 @@ exports.sync = function(req, res) {
 // Sends message to everyone in the channel.
 exports.sendMessageToChannel = function(req, response) {
   var msg = client.username + ": " + req.body.msg;
-  var oldLogHash = client.log.hashCode();
-
-  // Add message to my log.
-  var node = new Node(msg);
-  var log;
 
   lock.writeLock(function(release) {
+    var oldLogHash = client.log.hashCode();
+
+    // Add message to my log.
+    var node = new Node(msg);
+    var log;
     client.log.leaves.forEach(function(leaf, index) {
       client.log.directory[leaf].addChild(node);
     });
@@ -127,7 +127,7 @@ exports.sendMessageToChannel = function(req, response) {
       address = members[user];
       // TODO: This is asynchronous, so we should be able to reply to the user sending the message immediately.
       // If we failed to send the message out, we should add that message to the queue of things we need to send to that user and try again later.
-      sendMessageToUser(address, msg, oldLogHash);
+      sendMessageToUser(address, msg, log, oldLogHash);
     }
   });
 
@@ -138,13 +138,7 @@ exports.sendMessageToChannel = function(req, response) {
 }
 
 // Sends message to the particular destination.
-sendMessageToUser = function(dst, msg, oldLogHash) {
-  var log;
-  lock.readLock(function(release) {
-    log = JSON.parse(JSON.stringify(client.log));
-    release();
-  });
-
+sendMessageToUser = function(dst, msg, log, oldLogHash) {
   console.log("Sending message " + msg + " to " + dst + "/receiveMessage");
   console.log("Sending client log: \n" + JSON.stringify(log));
   request.post(
