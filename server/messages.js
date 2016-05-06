@@ -20,23 +20,25 @@ exports.receiveMessage = function(req, res) {
   var log = req.body.log;
 
   if (_.has(req.body, "logHash")) {
-    if (req.body.logHash === client.log.hashCode()) {
-      // if the hashes match, only need to add this new message
+    lock.writeLock(function(release) {
+      if (req.body.logHash === client.log.hashCode()) {
+        // if the hashes match, only need to add this new message
 
-      // Add message to my log.
-      var node = new Node(msg);
-      client.log.leaves.forEach(function(leaf, index) {
-        client.log.directory[leaf].addChild(node);
-      });
-      client.log.directory[node._id] = node;
-      client.log.leaves = [];
-      client.log.leaves.push(node._id);
+        // Add message to my log.
+        var node = new Node(msg);
+        client.log.leaves.forEach(function(leaf, index) {
+          client.log.directory[leaf].addChild(node);
+        });
+        client.log.directory[node._id] = node;
+        client.log.leaves = [];
+        client.log.leaves.push(node._id);
 
-      res.json({ success: true, matches: true});
-    } else {
-      // hashes don't match, need to send the entire log
-      res.json({ success: true, matches: false});
-    }
+        res.json({ success: true, matches: true});
+      } else {
+        // hashes don't match, need to send the entire log
+        res.json({ success: true, matches: false});
+      }
+    });
   } else {
     console.log("Received chat log: \n" + JSON.stringify(log));
     client.channels[client.channel].user = address;
@@ -65,15 +67,16 @@ exports.sync = function(req, res) {
   var log = req.body.log;
 
   if (_.has(req.body, "logHash")) {
-    if (req.body.logHash === client.log.hashCode()) {
-      // if the hashes match, no need to update
-      res.json({ success: true, matches: true});
-    } else {
-      // hashes don't match, need to send the entire log
-      res.json({ success: true, matches: false});
-    }
+    lock.readLock(function(release) {
+      if (req.body.logHash === client.log.hashCode()) {
+        // if the hashes match, no need to update
+        res.json({ success: true, matches: true});
+      } else {
+        // hashes don't match, need to send the entire log
+        res.json({ success: true, matches: false});
+      }
+    });
   } else {
-
     console.log("Received chat log: \n" + JSON.stringify(log));
     client.channels[client.channel].user = address;
     console.log("My member list: " + JSON.stringify(client.channels[client.channel]));
