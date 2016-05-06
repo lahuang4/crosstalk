@@ -10,7 +10,6 @@ var assert = function(bool, msg) {
 var TestSmallSubtree = function() {
   var tree1 = new Tree();
   var tree2 = tree1.clone();
-  tree2.root._id = tree1.root._id;
 
   var a = new Node("a");
   var b = new Node("b");
@@ -48,5 +47,23 @@ var TestSmallSubtree = function() {
   console.log("Passed");
 }
 
-TestSmallSubtree();
+var TestSimple = function() {
+  var tree1 = new Tree();
+  var tree2 = tree1.clone();
+
+  var a = new Node("a");
+  tree1.root.addChild(a);
+  tree1.directory[a._id] = a;
+  tree1.leaves.splice(tree1.leaves.indexOf(tree1.root._id), 1);
+  tree1.leaves.push(a._id);
+
+  tree2.merge(tree1);
+
+  console.log(JSON.parse(JSON.stringify(tree1)));
+
+  console.log("Passed");
+}
+
+// TestSmallSubtree();
+TestSimple();
 
