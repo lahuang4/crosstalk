@@ -86,6 +86,19 @@ function displayChatLog(log) {
         }
       }
     });
+
+    // normalize the height of each message block in the each message row (so borders aren't wonky)
+    $(".message-row").each(function() {
+      var children = $(this).children();
+      var maxHeight = 0;
+      children.each(function() {
+        maxHeight = Math.max(maxHeight, $(this).height());
+      });
+
+      children.each(function() {
+        $(this).height(maxHeight);
+      });
+    });
   }
 }
 
