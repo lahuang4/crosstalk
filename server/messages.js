@@ -99,12 +99,12 @@ exports.sync = function(req, res) {
 exports.sendMessageToChannel = function(req, response) {
   var msg = client.username + ": " + req.body.msg;
 
+  var log;
   lock.writeLock(function(release) {
     var oldLogHash = client.log.hashCode();
 
     // Add message to my log.
     var node = new Node(msg);
-    var log;
     client.log.leaves.forEach(function(leaf, index) {
       client.log.directory[leaf].addChild(node);
     });
