@@ -138,7 +138,7 @@ exports.sendMessageToChannel = function(req, response) {
 }
 
 // Sends message to the particular destination.
-sendMessageToUser = function(dst, msg) {
+sendMessageToUser = function(dst, msg, oldLogHash) {
   var log;
   lock.readLock(function(release) {
     log = JSON.parse(JSON.stringify(client.log));
