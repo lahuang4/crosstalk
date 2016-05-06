@@ -1,6 +1,6 @@
 var bodyParser = require('body-parser');
 var express = require('express');
-var cors = require('cors')
+var cors = require('cors');
 
 var Tree = require("./models/tree.js");
 var users = require("./users.js");
@@ -11,6 +11,8 @@ var app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cors());
+
+var lock = messages.lock;
 
 const PORT = 4000;
 
@@ -70,11 +72,15 @@ app.post('/setPartition', function(req, res) {
 });
 
 app.post('/getLog', function(req, res) {
-  res.json({
-    username: exports.username,
-    channel: exports.channel,
-    members: exports.channels[exports.channel],
-    log: exports.log
+  lock.readLock(function(release) {
+    res.json({
+      username: exports.username,
+      channel: exports.channel,
+      members: exports.channels[exports.channel],
+      log: exports.log
+    });
+
+    release();
   });
 });
 

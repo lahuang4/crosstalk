@@ -1,10 +1,15 @@
 var exports = module.exports = {};
 
 var request = require("request");
+var ReadWriteLock = require("rwlock");
 
 var client = require("./server.js");
 var Tree = require("./models/tree.js");
 var Node = require("./models/node.js");
+
+var lock = new ReadWriteLock();
+
+exports.lock = lock;
 
 // Merges the message with the chat log.
 exports.receiveMessage = function(req, res) {
@@ -39,13 +44,15 @@ exports.receiveMessage = function(req, res) {
     // Parse the log object into a Tree.
     var peerLog = new Tree(log);
 
+  lock.writeLock(function(release) {
     // Merge the log with my log.
     client.log.merge(peerLog);
 
     console.log("My log after merging: \n" + JSON.stringify(client.log));
 
     res.json({ success: true, log: client.log });
-  }
+    release();
+  });
 }
 
 // Syncs the log and chat channel members list.
@@ -72,6 +79,7 @@ exports.sync = function(req, res) {
     // Parse the log object into a Tree.
     var peerLog = new Tree(log);
 
+  lock.writeLock(function(release) {
     // Merge the log with my log.
     client.log.merge(peerLog);
 
@@ -80,7 +88,8 @@ exports.sync = function(req, res) {
     // TODO: Merge chat channel members as well.
 
     res.json({ success: true, log: client.log });
-  } 
+    release();
+  });
 }
 
 // Sends message to everyone in the channel.
@@ -90,12 +99,22 @@ exports.sendMessageToChannel = function(req, response) {
 
   // Add message to my log.
   var node = new Node(msg);
-  client.log.leaves.forEach(function(leaf, index) {
-    client.log.directory[leaf].addChild(node);
+  var log;
+
+  lock.writeLock(function(release) {
+    client.log.leaves.forEach(function(leaf, index) {
+      client.log.directory[leaf].addChild(node);
+    });
+    client.log.directory[node._id] = node;
+    client.log.leaves = [];
+    client.log.leaves.push(node._id);
+
+    console.log("In sendMessage, added new node as leaf. My log: " + JSON.stringify(client.log));
+
+    // copy the tree
+    log = new Tree(JSON.parse(JSON.stringify(client.log)));
+    release();
   });
-  client.log.directory[node._id] = node;
-  client.log.leaves = [];
-  client.log.leaves.push(node._id);
 
   // Send out message to everyone else.
   var members = client.channels[client.channel];
@@ -111,13 +130,20 @@ exports.sendMessageToChannel = function(req, response) {
 
   response.json({
     msg: msg,
-    log: client.log
+    log: log
   });
 }
 
 // Sends message to the particular destination.
-sendMessageToUser = function(dst, msg, oldLogHash) {
+sendMessageToUser = function(dst, msg) {
+  var log;
+  lock.readLock(function(release) {
+    log = JSON.parse(JSON.stringify(client.log));
+    release();
+  });
+
   console.log("Sending message " + msg + " to " + dst + "/receiveMessage");
+  console.log("Sending client log: \n" + JSON.stringify(log));
   request.post(
     dst + "/receiveMessage",
     {
@@ -156,10 +182,12 @@ sendMessageToUser = function(dst, msg, oldLogHash) {
                 // Parse the object into a Tree.
                 var peerLog = new Tree(body.log);
 
-                // Merge the returned log with my log.
-                client.log.merge(peerLog);
+                lock.writeLock(function(release) {
+                  // Merge the returned log with my log.
+                  client.log.merge(peerLog);
 
-                console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
+                  console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));   
+                  release()  
               } else {
                 // We didn't successfully send the message to the user, so we'll try again later.
                 client.inactiveUsers.add(dst);
@@ -167,9 +195,6 @@ sendMessageToUser = function(dst, msg, oldLogHash) {
             }
           );
         }
-      } else {
-        // We didn't successfully send the message to the user, so we'll try again later.
-        client.inactiveUsers.add(dst);
       }
     }
   );
@@ -177,6 +202,13 @@ sendMessageToUser = function(dst, msg, oldLogHash) {
 
 syncWithPeer = function(dst) {
   console.log("Syncing with user at address " + dst);
+
+  var log;
+  lock.readLock(function(release) {
+    log = JSON.parse(JSON.stringify(client.log));
+    release();
+  });
+
   request.post(
     dst + "/sync",
     {
@@ -211,15 +243,17 @@ syncWithPeer = function(dst) {
                 console.log("Received response body " + JSON.stringify(body));
                 client.inactiveUsers.delete(dst);
 
-                // Parse the object into a Tree.
-                var peerLog = new Tree(body.log);
+                lock.writeLock(function(release) {
+                  // Parse the object into a Tree.
+                  var peerLog = new Tree(body.log);
 
-                // Merge the returned log with my log.
-                client.log.merge(peerLog);
+                  // Merge the returned log with my log.
+                  client.log.merge(peerLog);
 
-                console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
+                  console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
 
-                // TODO: Merge chat channel members lists as well.
+                  // TODO: Merge chat channel members lists as well.
+                  release();
               }
             }
           );

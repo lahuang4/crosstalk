@@ -14,6 +14,7 @@
     "externalip": "^1.0.1",
     "jade": "~1.11.0",
     "morgan": "~1.6.1",
+    "rwlock": "^5.0.0",
     "serve-favicon": "~2.3.0",
     "stylus": "0.42.3"
   }

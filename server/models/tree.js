@@ -23,6 +23,7 @@ var Tree = function(obj) {
   }
 
   tree.merge = function(peerTree) {
+    console.log("Merging two trees: \n1: " + JSON.stringify(tree) + "\n2: " + JSON.stringify(peerTree));
     if (!(peerTree instanceof Tree)) {
       throw "Unexpected peerTree type: " + peerTree.constructor.name;
     }
@@ -57,17 +58,20 @@ var Tree = function(obj) {
 
     peerTree.leaves.forEach(function(leafID) {
       if (!(leafID in tree.directory)) {
+        console.log("peerTree's leaf " + leafID + " was not in my directory. Creating a copy of it.");
         var copiedNode = peerTree.directory[leafID].clone();
         tree.directory[leafID] = copiedNode;
         nodesToProcess.push(leafID);
-      }
-      if (tree.leaves.indexOf(leafID) === -1) {
-        tree.leaves.push(leafID);
+        if (tree.leaves.indexOf(leafID) === -1) {
+          console.log("I don't have the leaf " + leafID + " in my leaves. Adding it.");
+          tree.leaves.push(leafID);
+        }
       }
     });
 
     for (var i=0; i<nodesToProcess.length; i++) {
       var nodeID = nodesToProcess[i];
+      console.log("Processing node " + nodeID);
       peerTree.directory[nodeID].parents.forEach(function(parentID) {
         if (!(parentID in tree.directory)) {
           var copiedNode = peerTree.directory[parentID].clone();
@@ -77,6 +81,7 @@ var Tree = function(obj) {
         tree.directory[nodeID].addParent(tree.directory[parentID]);
         // Remove parentID from leaves.
         if (tree.leaves.indexOf(parentID) > -1) {
+          console.log("removing leaf " + parentID);
           tree.leaves.splice(tree.leaves.indexOf(parentID), 1);
         }
       });

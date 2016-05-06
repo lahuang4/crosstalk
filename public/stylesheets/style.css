@@ -30,8 +30,19 @@ button {
 }
 .message-block {
   display: inline-block;
+  vertical-align: top;
+  border-left: 1px solid #000;
+  box-sizing: border-box;
+}
+.message-block:nth-child(1) {
+  border-left: 0 solid #000;
+}
+.message-row {
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
 }
 .message {
+  padding: 5px;
   display: block;
 }
 ::-webkit-scrollbar {
