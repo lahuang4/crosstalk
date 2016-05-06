@@ -44,15 +44,16 @@ exports.receiveMessage = function(req, res) {
     // Parse the log object into a Tree.
     var peerLog = new Tree(log);
 
-  lock.writeLock(function(release) {
-    // Merge the log with my log.
-    client.log.merge(peerLog);
+    lock.writeLock(function(release) {
+      // Merge the log with my log.
+      client.log.merge(peerLog);
 
-    console.log("My log after merging: \n" + JSON.stringify(client.log));
+      console.log("My log after merging: \n" + JSON.stringify(client.log));
 
-    res.json({ success: true, log: client.log });
-    release();
-  });
+      res.json({ success: true, log: client.log });
+      release();
+    });
+  }
 }
 
 // Syncs the log and chat channel members list.
@@ -79,17 +80,18 @@ exports.sync = function(req, res) {
     // Parse the log object into a Tree.
     var peerLog = new Tree(log);
 
-  lock.writeLock(function(release) {
-    // Merge the log with my log.
-    client.log.merge(peerLog);
+    lock.writeLock(function(release) {
+      // Merge the log with my log.
+      client.log.merge(peerLog);
 
-    console.log("My log after merging: \n" + JSON.stringify(client.log));
+      console.log("My log after merging: \n" + JSON.stringify(client.log));
 
-    // TODO: Merge chat channel members as well.
+      // TODO: Merge chat channel members as well.
 
-    res.json({ success: true, log: client.log });
-    release();
-  });
+      res.json({ success: true, log: client.log });
+      release();
+    });
+  }
 }
 
 // Sends message to everyone in the channel.
@@ -187,7 +189,8 @@ sendMessageToUser = function(dst, msg) {
                   client.log.merge(peerLog);
 
                   console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));   
-                  release()  
+                  release();
+                });
               } else {
                 // We didn't successfully send the message to the user, so we'll try again later.
                 client.inactiveUsers.add(dst);
@@ -254,6 +257,7 @@ syncWithPeer = function(dst) {
 
                   // TODO: Merge chat channel members lists as well.
                   release();
+                });
               }
             }
           );
