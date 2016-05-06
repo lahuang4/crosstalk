@@ -96,6 +96,7 @@ exports.leaveChannel = function(req, response) {
         if (body.success) {
           client.channel = "";
           delete client.channels[channel];
+          client.log = new Tree();
           console.log("Successfully left channel " + channel + ".");
           response.json(body);
         } else if (body.channel_exists && !body.user_in_channel) {
