@@ -102,6 +102,13 @@ var Tree = function(obj) {
       hash += tree.directory[nodeID].hashCode()
     }
 
+    hash += tree.root.hashCode();
+    hash += tree.leaves.map(function(leafID) {
+      return leafID.hashCode();
+    }).reduce(function(prevValue, curValue) {
+      return prevValue + curValue;
+    });
+
     return hash;
   }
 
