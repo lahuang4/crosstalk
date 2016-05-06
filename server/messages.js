@@ -9,10 +9,13 @@ var Node = require("./models/node.js");
 // Merges the message with the chat log.
 exports.receiveMessage = function(req, res) {
   var user = req.body.user;
+  var address = req.body.address;
   var msg = req.body.message;
   var log = req.body.log;
 
   console.log("Received chat log: \n" + JSON.stringify(log));
+  client.channels[client.channel].user = address;
+  console.log("My member list: " + JSON.stringify(client.channels[client.channel]));
 
   // Parse the log object into a Tree.
   var peerLog = new Tree(log);
@@ -28,10 +31,13 @@ exports.receiveMessage = function(req, res) {
 // Syncs the log and chat channel members list.
 exports.sync = function(req, res) {
   var user = req.body.user;
+  var address = req.body.address;
   var members = req.body.members;
   var log = req.body.log;
 
   console.log("Received chat log: \n" + JSON.stringify(log));
+  client.channels[client.channel].user = address;
+  console.log("My member list: " + JSON.stringify(client.channels[client.channel]));
 
   // Parse the log object into a Tree.
   var peerLog = new Tree(log);
@@ -86,6 +92,7 @@ sendMessageToUser = function(dst, msg) {
     {
       json: {
         user: client.username,
+        address: client.address,
         message: msg,
         log: client.log,
         partition: client.partition
@@ -118,6 +125,7 @@ syncWithPeer = function(dst) {
     {
       json: {
         user: client.username,
+        address: client.address,
         members: client.channels[client.channel],
         log: client.log,
         partition: client.partition
