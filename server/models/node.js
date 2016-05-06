@@ -1,6 +1,17 @@
 var shortid = require("shortid");
 var _ = require("lodash");
 
+String.prototype.hashCode = function(){
+  var hash = 0;
+  if (this.length == 0) return hash;
+  for (i = 0; i < this.length; i++) {
+    char = this.charCodeAt(i);
+    hash = ((hash<<5)-hash)+char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash;
+}
+
 var Node = function(value, obj) {
   var node = Object.create(Node.prototype);
   
@@ -56,6 +67,18 @@ var Node = function(value, obj) {
     return node._id === otherNode._id &&
       _.isEqual(new Set(node.children), new Set(otherNode.children)) &&
       _.isEqual(new Set(node.parents), new Set(otherNode.parents));
+  }
+
+  node.hashCode = function() {
+    return node._id.hashCode() + node.parents.map(function(parentID) {
+      return parentID.hashCode()
+    }).reduce(function(prevValue, curValue) {
+      return prevValue + curValue;
+    },0) + node.children.map(function(childID) {
+      return childID.hashCode()
+    }).reduce(function(prevValue, curValue) {
+      return prevValue + curValue;
+    },0) + node.value.hashCode();
   }
 
   return node;

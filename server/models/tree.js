@@ -96,18 +96,16 @@ var Tree = function(obj) {
     return _.isEqual(tree.versions, otherTree.versions);
   }
 
-  tree.clone = function() {
-    var newTree = new Tree();
-    newTree.directory[tree.root._id] = newTree.root;
-    delete newTree.directory[newTree.root._id];
-    newTree.root._id = tree.root._id;
+  tree.hashCode = function() {
+    var hash = 0;
+    for (var nodeID in tree.directory) {
+      hash += tree.directory[nodeID].hashCode()
+    }
 
-    return newTree;
+    return hash;
   }
 
   return tree;
 }
-
-Tree()
 
 module.exports = Tree;

@@ -9,8 +9,9 @@ var assert = function(bool, msg) {
 
 var TestSmallSubtree = function() {
   var tree1 = new Tree();
-  var tree2 = tree1.clone();
-  tree2.root._id = tree1.root._id;
+  var tree2 = new Tree();
+
+  assert(tree1.hashCode() === tree2.hashCode(), "hash codes are not equal");
 
   var a = new Node("a");
   var b = new Node("b");
@@ -39,11 +40,13 @@ var TestSmallSubtree = function() {
 
   tree2.merge(tree1);
 
-  assert(tree1.directory[b._id].equals(tree2.directory[bCopy._id]), "blah");
+  assert(tree1.hashCode() === tree2.hashCode(), "hash codes are not equal");
+
+  assert(tree1.directory[b._id].equals(tree2.directory[bCopy._id]), "node b not equal");
 
   var bCopyChildren = Array.from(tree2.directory[bCopy._id].children);
   assert(bCopyChildren.length != 0, "bCopy does not have the right number of children");
-  assert(tree2.directory[bCopyChildren[0]].equals(c), "blah2");
+  assert(tree2.directory[bCopyChildren[0]].equals(c), "node c not equal");
 
   console.log("Passed");
 }
