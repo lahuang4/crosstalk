@@ -35,21 +35,32 @@ exports.sync = function(req, res) {
   var members = req.body.members;
   var log = req.body.log;
 
-  console.log("Received chat log: \n" + JSON.stringify(log));
-  client.channels[client.channel].user = address;
-  console.log("My member list: " + JSON.stringify(client.channels[client.channel]));
+  if (logHash in req.body) {
+    if (req.body.logHash === client.log.hashCode()) {
+      // if the hashes match, no need to update
+      res.json({ success: true, matches: true});
+    } else {
+      // hashes don't match, need to send the entire log
+      res.json({ success: true, matches: false});
+    }
+  } else {
 
-  // Parse the log object into a Tree.
-  var peerLog = new Tree(log);
+    console.log("Received chat log: \n" + JSON.stringify(log));
+    client.channels[client.channel].user = address;
+    console.log("My member list: " + JSON.stringify(client.channels[client.channel]));
 
-  // Merge the log with my log.
-  client.log.merge(peerLog);
+    // Parse the log object into a Tree.
+    var peerLog = new Tree(log);
 
-  console.log("My log after merging: \n" + JSON.stringify(client.log));
+    // Merge the log with my log.
+    client.log.merge(peerLog);
 
-  // TODO: Merge chat channel members as well.
+    console.log("My log after merging: \n" + JSON.stringify(client.log));
 
-  res.json({ success: true, log: client.log });
+    // TODO: Merge chat channel members as well.
+
+    res.json({ success: true, log: client.log });
+  } 
 }
 
 // Sends message to everyone in the channel.
@@ -127,24 +138,43 @@ syncWithPeer = function(dst) {
         user: client.username,
         address: client.address,
         members: client.channels[client.channel],
-        log: client.log,
+        logHash: client.log.hashCode(),
         partition: client.partition
       }
     },
     function(err, res, body) {
       if (!err && res.statusCode == 200) {
-        console.log("Received response body " + JSON.stringify(body));
-        client.inactiveUsers.delete(dst);
+        // hash codes doesn't match, send the whole log
+        if (!body.matches) {
+          request.post(
+            dst + "/sync",
+            {
+              json: {
+                user: client.username,
+                address: client.address,
+                members: client.channels[client.channel],
+                log: client.log,
+                partition: client.partition
+              }
+            },
+            function(err, res, body) {
+              if (!err && res.statusCode == 200) {
+                console.log("Received response body " + JSON.stringify(body));
+                client.inactiveUsers.delete(dst);
 
-        // Parse the object into a Tree.
-        var peerLog = new Tree(body.log);
+                // Parse the object into a Tree.
+                var peerLog = new Tree(body.log);
 
-        // Merge the returned log with my log.
-        client.log.merge(peerLog);
+                // Merge the returned log with my log.
+                client.log.merge(peerLog);
 
-        console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
+                console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
 
-        // TODO: Merge chat channel members lists as well.
+                // TODO: Merge chat channel members lists as well.
+              }
+            }
+          );
+        }
       }
     }
   );

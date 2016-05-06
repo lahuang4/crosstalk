@@ -14,6 +14,7 @@ app.use(cors());
 
 const PORT = 4000;
 
+// Check if this server is in the same partition as the other server
 var partition = function(req, res, next) {
   if (req.body.partition === exports.partition) {
     next()
