@@ -51,7 +51,6 @@ function displayChatLog(log) {
 
         var child = log.directory[childID];
 
-
         if (child.parents.length === 1) {
           if (node.children.length === 1) {
             // it's a continuation
@@ -73,13 +72,17 @@ function displayChatLog(log) {
           }
         } else {
           // it's a merge
-          var parentID = child.parents[0];
-
           var newMessage = $("<span class='message'></span>");
           newMessage.text(child.value);
 
-          $("." + parentID).parents(".message-block").append(newMessage)
-            .addClass(childID);
+          for (var i=0; i<child.parents.length; i++) {
+            var parentID = child.parents[i];
+            if ($("." + parentID).length) {
+              $("." + parentID).parents(".message-block").append(newMessage)
+              .addClass(childID);
+              break;
+            }
+          }
         }
       }
     });
