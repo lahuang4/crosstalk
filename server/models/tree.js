@@ -62,10 +62,10 @@ var Tree = function(obj) {
         var copiedNode = peerTree.directory[leafID].clone();
         tree.directory[leafID] = copiedNode;
         nodesToProcess.push(leafID);
-      }
-      if (tree.leaves.indexOf(leafID) === -1) {
-        console.log("I don't have the leaf " + leafID + " in my leaves. Adding it.");
-        tree.leaves.push(leafID);
+        if (tree.leaves.indexOf(leafID) === -1) {
+          console.log("I don't have the leaf " + leafID + " in my leaves. Adding it.");
+          tree.leaves.push(leafID);
+        }
       }
     });
 
