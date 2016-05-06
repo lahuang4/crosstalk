@@ -51,10 +51,13 @@ var TestInequality = function() {
 
   assert(a.equals(b), "a does not equal b");
 
+  assert(a.hashCode() === b.hashCode(), "a's hashcode does not equal b's hashcode");
+
   var c = new Node();
   a.addParent(c);
 
   assert(!a.equals(b), "a equals b");
+  assert(a.hashCode() !== b.hashCode(), "a's hashcode equals b's hashcode");
 
   var d = new Node();
   b.addParent(c);
