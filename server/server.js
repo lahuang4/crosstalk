@@ -30,10 +30,10 @@ require('dns').lookup(require('os').hostname(), function (err, add, fam) {
 
 // Client information
 exports.username = "";
-exports.address = "http://" + ipaddr + ":4000";
+exports.address = "http://" + "18.111.82.69" + ":4000";
 exports.channel = "";
 exports.channels = {};
-exports.directory = "http://169.254.253.232:5000";
+exports.directory = "http://18.189.75.154:5000";
 exports.log = new Tree();
 
 // Client methods

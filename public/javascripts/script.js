@@ -14,7 +14,7 @@ function refreshChatLog() {
     if (!equalTrees(client.log, data.log)) {
       client.log = data.log;
       console.log("I got chat log " + JSON.stringify(client.log));
-      displayChatLog(client.log);
+      // displayChatLog(client.log);
     }
   });
 }
@@ -25,21 +25,55 @@ function displayChatLog(log) {
   $("#chat-box-content").text("");
 
   // Iterate through the tree and add messages.
-  var node = log.root;
-  // Iterate down a single path for now...
-  // TODO: Display branches side-by-side
-  while (node.children.length > 0) {
-    node = log.directory[node.children[0]];
-    addMessage(node.value);
-  }
-}
+  var queue = [log.root._id];
+  var visited = new Set();
+  var rootDiv = $("<div class='message-block'></div>");
+  rootDiv.addClass(log.root._id);
+  $("#chat-box-content").append(rootDiv);
 
-// Add a single message to the chat box.
-function addMessage(msg) {
-  var newDiv = $("<div></div>");
-  newDiv.text(msg);
-  $("#chat-box-content")[0].appendChild(newDiv[0]);
-  $("#chat-box-content")[0].scrollTop = $("#chat-box-content")[0].scrollHeight;
+  for (var i=0; i<queue.length; i++) {
+    // Put the children in the queue.
+    var nodeID = queue[i];
+    var node = log.directory[nodeID];
+
+    if (node.children.length > 1) {
+      var newRow = $("<div class='message-row'></div>");
+      $("." + nodeID).append(newRow);
+    }
+
+    node.children.forEach(function(childID) {
+      if (!visited.has(childID)) {
+        visited.add(childID);
+        queue.push(childID);
+      };
+
+      var child = log.directory[childID];
+
+
+      if (child.parents.length === 1) {
+        if (node.children.length === 1) {
+          // it's a continuation
+          var newMessage = $("<span class='message'></span>");
+          console.log(child.value);
+          newMessage.text(child.value);
+          $("." + nodeID).append(newMessage)
+            .addClass(childID);
+        } else {
+          // it's a split
+          var newMessageBlock = $("<div class='message-block'></div>");
+          var newMessage = $("<span class='message'></span>");
+          console.log(child.value);
+          newMessage.text(child.value);
+          newMessageBlock.append(newMessage)
+            .addClass(childID);
+
+          $("." + nodeID + " > .message-row").last().append(newMessageBlock);
+        }
+      } else {
+        // it's a merge
+      }
+    });
+  }
 }
 
 function equalTrees(tree1, tree2) {
