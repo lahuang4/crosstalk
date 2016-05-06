@@ -267,6 +267,9 @@ exports.syncWithRandomPeer = function() {
   var members = client.channels[client.channel];
   if (members && Object.keys(members).length > 1) {
     var address = randomValue(members);
+    while (address === client.address) {
+      address = randomValue(members);
+    }
     console.log("Syncing with member at address " + address + "! members is " + JSON.stringify(members));
     dst = address;
   } else {
