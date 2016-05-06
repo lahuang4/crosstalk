@@ -42,7 +42,7 @@ exports.partition = "";
 exports.channel = "";
 exports.channels = {};
 // exports.directory = "http://18.189.75.154:5000";
-exports.directory = "http://localhost:5000";
+exports.directory = "http://52.32.209.19:5000";
 exports.log = new Tree();
 exports.inactiveUsers = new Set();
 
