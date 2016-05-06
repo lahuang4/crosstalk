@@ -87,6 +87,8 @@ function displayChatLog(log) {
       }
     });
   }
+  // Scroll to the bottom of the chat.
+  $("#chat-box-content")[0].scrollTop = $("#chat-box-content")[0].scrollHeight;
 }
 
 function equalTrees(tree1, tree2) {
