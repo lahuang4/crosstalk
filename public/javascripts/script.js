@@ -11,9 +11,11 @@ function refreshChatLog() {
   })
   .done(function(data) {
     // Refresh the displayed chat messages.
-    client.log = data.log;
-    console.log("I got chat log " + JSON.stringify(client.log));
-    displayChatLog(client.log);
+    if (!equalTrees(client.log, data.log)) {
+      client.log = data.log;
+      console.log("I got chat log " + JSON.stringify(client.log));
+      displayChatLog(client.log);
+    }
   });
 }
 
@@ -38,6 +40,10 @@ function addMessage(msg) {
   newDiv.text(msg);
   $("#chat-box-content")[0].appendChild(newDiv[0]);
   $("#chat-box-content")[0].scrollTop = $("#chat-box-content")[0].scrollHeight;
+}
+
+function equalTrees(tree1, tree2) {
+  return JSON.stringify(tree1) === JSON.stringify(tree2);
 }
 
 $(document).ready(function() {
