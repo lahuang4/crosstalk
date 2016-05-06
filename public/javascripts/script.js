@@ -24,6 +24,8 @@ function displayChatLog(log) {
   // Clear the messages currently displayed in the chat box.
   $("#chat-box-content").text("");
 
+  console.log("I have the log this " + JSON.stringify(log));
+
   // Iterate through the tree and add messages.
   var queue = [log.root._id];
   var visited = new Set();
@@ -98,7 +100,7 @@ $(document).ready(function() {
   // TODO: Push notifications instead of having to poll for updates?
   setInterval(function() {
     if (client.username && client.channel) {
-      // refreshChatLog();
+      refreshChatLog();
     }
   }, 1000);
 

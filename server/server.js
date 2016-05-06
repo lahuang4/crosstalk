@@ -29,8 +29,8 @@ exports.username = "";
 exports.address = "http://localhost:4000";
 exports.channel = "";
 exports.channels = {};
-// exports.directory = "http://18.189.75.154:5000";
-exports.directory = "http://localhost:5000";
+exports.directory = "http://18.189.75.154:5000";
+// exports.directory = "http://localhost:5000";
 exports.log = new Tree();
 exports.inactiveUsers = new Set();
 
