@@ -86,20 +86,24 @@ function displayChatLog(log) {
         }
       }
     });
-
-    // normalize the height of each message block in the each message row (so borders aren't wonky)
-    $(".message-row").each(function() {
-      var children = $(this).children();
-      var maxHeight = 0;
-      children.each(function() {
-        maxHeight = Math.max(maxHeight, $(this).height());
-      });
-
-      children.each(function() {
-        $(this).height(maxHeight);
-      });
-    });
   }
+
+  // normalize the height of each message block in the each message row (so borders aren't wonky)
+  console.log($(".message-row").length);
+  $(".message-row").each(function() {
+    var children = $(this).children();
+    var maxHeight = 0;
+    children.each(function() {
+      maxHeight = Math.max(maxHeight, $(this).height());
+    });
+
+    console.log("setting height for children of", $(this), "to ", maxHeight);
+
+    children.each(function() {
+      $(this).height(maxHeight);
+    });
+  });
+
   // Scroll to the bottom of the chat.
   $("#chat-box-content")[0].scrollTop = $("#chat-box-content")[0].scrollHeight;
 }
