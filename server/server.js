@@ -23,12 +23,17 @@ app.post('/sync', function(req, res) {
   messages.sync(req, res);
 });
 
+var ipaddr = "localhost";
+require('dns').lookup(require('os').hostname(), function (err, add, fam) {
+  ipaddr = add;
+});
+
 // Client information
 exports.username = "";
-exports.address = "http://localhost:4000";
+exports.address = "http://" + ipaddr + ":4000";
 exports.channel = "";
 exports.channels = {};
-exports.directory = "http://localhost:5000";
+exports.directory = "http://169.254.253.232:5000";
 exports.log = new Tree();
 
 // Client methods
