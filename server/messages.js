@@ -2,6 +2,7 @@ var exports = module.exports = {};
 
 var request = require("request");
 var ReadWriteLock = require("rwlock");
+var _ = require("lodash");
 
 var client = require("./server.js");
 var Tree = require("./models/tree.js");
@@ -18,7 +19,7 @@ exports.receiveMessage = function(req, res) {
   var msg = req.body.message;
   var log = req.body.log;
 
-  if (logHash in req.body) {
+  if (_.has(req.body, "logHash")) {
     if (req.body.logHash === client.log.hashCode()) {
       // if the hashes match, only need to add this new message
 
@@ -63,7 +64,7 @@ exports.sync = function(req, res) {
   var members = req.body.members;
   var log = req.body.log;
 
-  if (logHash in req.body) {
+  if (_.has(req.body, "logHash")) {
     if (req.body.logHash === client.log.hashCode()) {
       // if the hashes match, no need to update
       res.json({ success: true, matches: true});
