@@ -74,6 +74,8 @@ exports.sendMessageToChannel = function(req, response) {
     client.log.leaves = [];
     client.log.leaves.push(node._id);
 
+    console.log("In sendMessage, added new node as leaf. My log: " + JSON.stringify(client.log));
+
     // copy the tree
     log = new Tree(JSON.parse(JSON.stringify(client.log)));
     release();
