@@ -95,6 +95,7 @@ $(document).ready(function() {
   $("#channel").hide();
   $("#chat-box").hide();
   $("#message").hide();
+  $("#partition").hide();
 
   // Refresh the chat log once in a while to receive new updates if we haven't been sending anything.
   // TODO: Push notifications instead of having to poll for updates?
@@ -119,6 +120,12 @@ $(document).ready(function() {
   $("#message-input").keyup(function(event) {
     if(event.keyCode == 13) {
       $("#message-button").click();
+    }
+  });
+
+  $("#partition-input").keyup(function(event) {
+    if(event.keyCode == 13) {
+      $("#partition-button").click();
     }
   });
 
@@ -168,6 +175,7 @@ $(document).ready(function() {
         $("#channel").hide();
         $("#chat-box").show();
         $("#message").show();
+        $("#partition").show();
 
         $("#chat-box-header").text("#" + client.channel);
 
@@ -190,6 +198,7 @@ $(document).ready(function() {
 
       $("#chat-box").hide();
       $("#message").hide();
+      $("#partition").hide();
       $("#channel").show();
     });
   });
@@ -215,5 +224,14 @@ $(document).ready(function() {
         $("#message-input").val("");
       });
     }
+  });
+
+  $("#partition-button").click(function() {
+    console.log("Partition set!");
+
+    $.post(server + "/setPartition",
+    {
+      partition: $("#partition-input").val()
+    });
   });
 });

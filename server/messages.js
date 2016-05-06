@@ -87,7 +87,8 @@ sendMessageToUser = function(dst, msg) {
       json: {
         user: client.username,
         message: msg,
-        log: client.log
+        log: client.log,
+        partition: client.partition
       }
     },
     function(err, res, body) {
@@ -118,7 +119,8 @@ syncWithPeer = function(dst) {
       json: {
         user: client.username,
         members: client.channels[client.channel],
-        log: client.log
+        log: client.log,
+        partition: client.partition
       }
     },
     function(err, res, body) {

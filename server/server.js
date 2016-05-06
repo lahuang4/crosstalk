@@ -14,12 +14,20 @@ app.use(cors());
 
 const PORT = 4000;
 
+var partition = function(req, res, next) {
+  if (req.body.partition === exports.partition) {
+    next()
+  } else {
+    console.log("not in partition");
+  }
+}
+
 // Server methods
-app.post('/receiveMessage', function(req, res) {
+app.post('/receiveMessage', partition, function(req, res) {
   messages.receiveMessage(req, res);
 });
 
-app.post('/sync', function(req, res) {
+app.post('/sync', partition, function(req, res) {
   messages.sync(req, res);
 });
 
@@ -27,10 +35,11 @@ app.post('/sync', function(req, res) {
 exports.username = "";
 // exports.address = "http://" + "18.111.82.69" + ":4000";
 exports.address = "http://localhost:4000";
+exports.partition = "";
 exports.channel = "";
 exports.channels = {};
-exports.directory = "http://18.189.75.154:5000";
-// exports.directory = "http://localhost:5000";
+// exports.directory = "http://18.189.75.154:5000";
+exports.directory = "http://localhost:5000";
 exports.log = new Tree();
 exports.inactiveUsers = new Set();
 
@@ -53,6 +62,10 @@ app.post('/leaveChannel', function(req, res) {
 
 app.post('/sendMessage', function(req, res) {
   messages.sendMessageToChannel(req, res);
+});
+
+app.post('/setPartition', function(req, res) {
+  exports.partition = req.body.partition;
 });
 
 app.post('/getLog', function(req, res) {
