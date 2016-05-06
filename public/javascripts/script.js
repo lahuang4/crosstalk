@@ -14,7 +14,7 @@ function refreshChatLog() {
     if (!equalTrees(client.log, data.log)) {
       client.log = data.log;
       console.log("I got chat log " + JSON.stringify(client.log));
-      // displayChatLog(client.log);
+      displayChatLog(client.log);
     }
   });
 }
@@ -28,7 +28,8 @@ function displayChatLog(log) {
   var queue = [log.root._id];
   var visited = new Set();
   var rootDiv = $("<div class='message-block'></div>");
-  rootDiv.addClass(log.root._id);
+  rootDiv.addClass(log.root._id)
+    .css("width", "100%");
   $("#chat-box-content").append(rootDiv);
 
   for (var i=0; i<queue.length; i++) {
@@ -45,32 +46,39 @@ function displayChatLog(log) {
       if (!visited.has(childID)) {
         visited.add(childID);
         queue.push(childID);
-      };
 
-      var child = log.directory[childID];
+        var child = log.directory[childID];
 
 
-      if (child.parents.length === 1) {
-        if (node.children.length === 1) {
-          // it's a continuation
-          var newMessage = $("<span class='message'></span>");
-          console.log(child.value);
-          newMessage.text(child.value);
-          $("." + nodeID).append(newMessage)
-            .addClass(childID);
+        if (child.parents.length === 1) {
+          if (node.children.length === 1) {
+            // it's a continuation
+            var newMessage = $("<span class='message'></span>");
+            newMessage.text(child.value);
+            $("." + nodeID).append(newMessage)
+              .addClass(childID);
+          } else {
+            // it's a split
+            var newMessageBlock = $("<div class='message-block'></div>");
+            var newMessage = $("<span class='message'></span>");
+            var percentWidth = 100 / node.children.length;
+            newMessage.text(child.value);
+            newMessageBlock.append(newMessage)
+              .addClass(childID)
+              .css("width", percentWidth.toString() + "%");
+
+            $("." + nodeID + " > .message-row").last().append(newMessageBlock);
+          }
         } else {
-          // it's a split
-          var newMessageBlock = $("<div class='message-block'></div>");
-          var newMessage = $("<span class='message'></span>");
-          console.log(child.value);
-          newMessage.text(child.value);
-          newMessageBlock.append(newMessage)
-            .addClass(childID);
+          // it's a merge
+          var parentID = child.parents[0];
 
-          $("." + nodeID + " > .message-row").last().append(newMessageBlock);
+          var newMessage = $("<span class='message'></span>");
+          newMessage.text(child.value);
+
+          $("." + parentID).parents(".message-block").append(newMessage)
+            .addClass(childID);
         }
-      } else {
-        // it's a merge
       }
     });
   }
@@ -90,7 +98,7 @@ $(document).ready(function() {
   // TODO: Push notifications instead of having to poll for updates?
   setInterval(function() {
     if (client.username && client.channel) {
-      refreshChatLog();
+      // refreshChatLog();
     }
   }, 1000);
 
