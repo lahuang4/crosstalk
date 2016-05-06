@@ -60,7 +60,7 @@ exports.sync = function(req, res) {
 
     // TODO: Merge chat channel members as well.
 
-    var copiedLog = JSON.stringify(JSON.parse(client.log));
+    var copiedLog = JSON.parse(JSON.stringify(client.log));
     release();
     res.json({ success: true, log: copiedLog });
   });
@@ -86,24 +86,25 @@ exports.sendMessageToChannel = function(req, response) {
     // copy the tree
     log = new Tree(JSON.parse(JSON.stringify(client.log)));
     release();
+
+    // Send out message to everyone else.
+    var members = client.channels[client.channel];
+    var address;
+    Object.keys(members).forEach(function(user, index) {
+      if (user != client.username) {
+        address = members[user];
+        // TODO: This is asynchronous, so we should be able to reply to the user sending the message immediately.
+        // If we failed to send the message out, we should add that message to the queue of things we need to send to that user and try again later.
+        sendMessageToUser(address, msg, log);
+      }
+    });
+
+    response.json({
+      msg: msg,
+      log: log
+    });
   });
 
-  // Send out message to everyone else.
-  var members = client.channels[client.channel];
-  var address;
-  Object.keys(members).forEach(function(user, index) {
-    if (user != client.username) {
-      address = members[user];
-      // TODO: This is asynchronous, so we should be able to reply to the user sending the message immediately.
-      // If we failed to send the message out, we should add that message to the queue of things we need to send to that user and try again later.
-      sendMessageToUser(address, msg, log);
-    }
-  });
-
-  response.json({
-    msg: msg,
-    log: log
-  });
 }
 
 // Sends message to the particular destination.
