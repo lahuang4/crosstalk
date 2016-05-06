@@ -64,7 +64,7 @@ exports.joinChannel = function(req, response) {
 
           // Get the latest version of the log from somebody.
           messages.syncWithRandomPeer();
-          body.log = new Tree(JSON.parse(JSON.stringify(client.log)));
+          body.log = client.log;
 
           response.send(body);
         } else if (!body.channel_exists) {
