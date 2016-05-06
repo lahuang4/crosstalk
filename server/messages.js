@@ -13,19 +13,39 @@ exports.receiveMessage = function(req, res) {
   var msg = req.body.message;
   var log = req.body.log;
 
-  console.log("Received chat log: \n" + JSON.stringify(log));
-  client.channels[client.channel].user = address;
-  console.log("My member list: " + JSON.stringify(client.channels[client.channel]));
+  if (logHash in req.body) {
+    if (req.body.logHash === client.log.hashCode()) {
+      // if the hashes match, only need to add this new message
 
-  // Parse the log object into a Tree.
-  var peerLog = new Tree(log);
+      // Add message to my log.
+      var node = new Node(msg);
+      client.log.leaves.forEach(function(leaf, index) {
+        client.log.directory[leaf].addChild(node);
+      });
+      client.log.directory[node._id] = node;
+      client.log.leaves = [];
+      client.log.leaves.push(node._id);
 
-  // Merge the log with my log.
-  client.log.merge(peerLog);
+      res.json({ success: true, matches: true});
+    } else {
+      // hashes don't match, need to send the entire log
+      res.json({ success: true, matches: false});
+    }
+  } else {
+    console.log("Received chat log: \n" + JSON.stringify(log));
+    client.channels[client.channel].user = address;
+    console.log("My member list: " + JSON.stringify(client.channels[client.channel]));
 
-  console.log("My log after merging: \n" + JSON.stringify(client.log));
+    // Parse the log object into a Tree.
+    var peerLog = new Tree(log);
 
-  res.json({ success: true, log: client.log });
+    // Merge the log with my log.
+    client.log.merge(peerLog);
+
+    console.log("My log after merging: \n" + JSON.stringify(client.log));
+
+    res.json({ success: true, log: client.log });
+  }
 }
 
 // Syncs the log and chat channel members list.
@@ -66,6 +86,7 @@ exports.sync = function(req, res) {
 // Sends message to everyone in the channel.
 exports.sendMessageToChannel = function(req, response) {
   var msg = client.username + ": " + req.body.msg;
+  var oldLogHash = client.log.hashCode();
 
   // Add message to my log.
   var node = new Node(msg);
@@ -84,7 +105,7 @@ exports.sendMessageToChannel = function(req, response) {
       address = members[user];
       // TODO: This is asynchronous, so we should be able to reply to the user sending the message immediately.
       // If we failed to send the message out, we should add that message to the queue of things we need to send to that user and try again later.
-      sendMessageToUser(address, msg);
+      sendMessageToUser(address, msg, oldLogHash);
     }
   });
 
@@ -95,9 +116,8 @@ exports.sendMessageToChannel = function(req, response) {
 }
 
 // Sends message to the particular destination.
-sendMessageToUser = function(dst, msg) {
+sendMessageToUser = function(dst, msg, oldLogHash) {
   console.log("Sending message " + msg + " to " + dst + "/receiveMessage");
-  console.log("Sending client log: \n" + JSON.stringify(client.log));
   request.post(
     dst + "/receiveMessage",
     {
@@ -105,7 +125,7 @@ sendMessageToUser = function(dst, msg) {
         user: client.username,
         address: client.address,
         message: msg,
-        log: client.log,
+        logHash: oldLogHash,
         partition: client.partition
       }
     },
@@ -114,13 +134,39 @@ sendMessageToUser = function(dst, msg) {
         console.log("Received response body " + JSON.stringify(body));
         client.inactiveUsers.delete(dst);
 
-        // Parse the object into a Tree.
-        var peerLog = new Tree(body.log);
+        // hash codes doesn't match, send the whole log
+        if (!body.matches) {
+          console.log("Sending client log: \n" + JSON.stringify(client.log));
+          request.post(
+            dst + "/receiveMessage",
+            {
+              json: {
+                user: client.username,
+                address: client.address,
+                message: msg,
+                log: client.log,
+                partition: client.partition
+              }
+            },
+            function(err, res, body) {
+              if (!err && res.statusCode == 200) {
+                console.log("Received response body " + JSON.stringify(body));
+                client.inactiveUsers.delete(dst);
 
-        // Merge the returned log with my log.
-        client.log.merge(peerLog);
+                // Parse the object into a Tree.
+                var peerLog = new Tree(body.log);
 
-        console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
+                // Merge the returned log with my log.
+                client.log.merge(peerLog);
+
+                console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
+              } else {
+                // We didn't successfully send the message to the user, so we'll try again later.
+                client.inactiveUsers.add(dst);
+              }
+            }
+          );
+        }
       } else {
         // We didn't successfully send the message to the user, so we'll try again later.
         client.inactiveUsers.add(dst);
@@ -144,6 +190,9 @@ syncWithPeer = function(dst) {
     },
     function(err, res, body) {
       if (!err && res.statusCode == 200) {
+        console.log("Received response body " + JSON.stringify(body));
+        client.inactiveUsers.delete(dst);
+
         // hash codes doesn't match, send the whole log
         if (!body.matches) {
           request.post(
