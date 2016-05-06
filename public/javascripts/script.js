@@ -25,21 +25,63 @@ function displayChatLog(log) {
   $("#chat-box-content").text("");
 
   // Iterate through the tree and add messages.
-  var node = log.root;
-  // Iterate down a single path for now...
-  // TODO: Display branches side-by-side
-  while (node.children.length > 0) {
-    node = log.directory[node.children[0]];
-    addMessage(node.value);
-  }
-}
+  var queue = [log.root._id];
+  var visited = new Set();
+  var rootDiv = $("<div class='message-block'></div>");
+  rootDiv.addClass(log.root._id)
+    .css("width", "100%");
+  $("#chat-box-content").append(rootDiv);
 
-// Add a single message to the chat box.
-function addMessage(msg) {
-  var newDiv = $("<div></div>");
-  newDiv.text(msg);
-  $("#chat-box-content")[0].appendChild(newDiv[0]);
-  $("#chat-box-content")[0].scrollTop = $("#chat-box-content")[0].scrollHeight;
+  for (var i=0; i<queue.length; i++) {
+    // Put the children in the queue.
+    var nodeID = queue[i];
+    var node = log.directory[nodeID];
+
+    if (node.children.length > 1) {
+      var newRow = $("<div class='message-row'></div>");
+      $("." + nodeID).append(newRow);
+    }
+
+    node.children.forEach(function(childID) {
+      if (!visited.has(childID)) {
+        visited.add(childID);
+        queue.push(childID);
+
+        var child = log.directory[childID];
+
+
+        if (child.parents.length === 1) {
+          if (node.children.length === 1) {
+            // it's a continuation
+            var newMessage = $("<span class='message'></span>");
+            newMessage.text(child.value);
+            $("." + nodeID).append(newMessage)
+              .addClass(childID);
+          } else {
+            // it's a split
+            var newMessageBlock = $("<div class='message-block'></div>");
+            var newMessage = $("<span class='message'></span>");
+            var percentWidth = 100 / node.children.length;
+            newMessage.text(child.value);
+            newMessageBlock.append(newMessage)
+              .addClass(childID)
+              .css("width", percentWidth.toString() + "%");
+
+            $("." + nodeID + " > .message-row").last().append(newMessageBlock);
+          }
+        } else {
+          // it's a merge
+          var parentID = child.parents[0];
+
+          var newMessage = $("<span class='message'></span>");
+          newMessage.text(child.value);
+
+          $("." + parentID).parents(".message-block").append(newMessage)
+            .addClass(childID);
+        }
+      }
+    });
+  }
 }
 
 function equalTrees(tree1, tree2) {
@@ -56,7 +98,7 @@ $(document).ready(function() {
   // TODO: Push notifications instead of having to poll for updates?
   setInterval(function() {
     if (client.username && client.channel) {
-      refreshChatLog();
+      // refreshChatLog();
     }
   }, 1000);
 
