@@ -41,6 +41,9 @@ button {
   border-top: 1px solid #000;
   border-bottom: 1px solid #000;
 }
+.message-row:last-child {
+  border-bottom: 0 solid #000;
+}
 .message {
   padding: 5px;
   display: block;
