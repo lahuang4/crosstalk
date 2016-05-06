@@ -32,7 +32,7 @@ exports.receiveMessage = function(req, res) {
 
     console.log("My log after merging: \n" + JSON.stringify(client.log));
 
-    var copiedLog = JSON.stringify(JSON.parse(client.log));
+    var copiedLog = JSON.parse(JSON.stringify(client.log));
     release();
     res.json({ success: true, log: copiedLog });
   });
