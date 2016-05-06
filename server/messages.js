@@ -99,9 +99,9 @@ exports.sync = function(req, res) {
 exports.sendMessageToChannel = function(req, response) {
   var msg = client.username + ": " + req.body.msg;
 
-  var log;
+  var log, oldLogHash;
   lock.writeLock(function(release) {
-    var oldLogHash = client.log.hashCode();
+    oldLogHash = client.log.hashCode();
 
     // Add message to my log.
     var node = new Node(msg);
