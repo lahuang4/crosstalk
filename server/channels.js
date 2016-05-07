@@ -135,7 +135,7 @@ exports.leaveChannel = function(req, response) {
         client.channels[client.channel][user] + "/goodbye",
         {
           json: {
-            user: client.username,
+            username: client.username,
             address: client.address,
             partition: client.partition
           }
