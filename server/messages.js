@@ -19,23 +19,46 @@ exports.receiveMessage = function(req, res) {
   var msg = req.body.message;
   var log = req.body.log;
 
-  console.log("Received chat log: \n" + JSON.stringify(log));
-  client.channels[client.channel].user = address;
-  console.log("My member list: " + JSON.stringify(client.channels[client.channel]));
+  if (_.has(req.body, "logHash")) {
+    lock.writeLock(function(release) {
+      if (client.log.hashCode() === req.body.logHash) {
 
-  // Parse the log object into a Tree.
-  var peerLog = new Tree(log);
+        // Add message to my log.
+        var node = new Node(msg);
+        node._id = req.body.messageID;
+        client.log.leaves.forEach(function(leaf, index) {
+          client.log.directory[leaf].addChild(node);
+        });
+        client.log.directory[node._id] = node;
+        client.log.leaves = [];
+        client.log.leaves.push(node._id);
 
-  lock.writeLock(function(release) {
-    // Merge the log with my log.
-    client.log.merge(peerLog);
+        res.json({ success: true, matches: true });
+      } else {
+        res.json({ success: true, matches: false });
+      }
 
-    console.log("My log after merging: \n" + JSON.stringify(client.log));
+      release();
+    });
+  } else {
+    console.log("Received chat log: \n" + JSON.stringify(log));
+    client.channels[client.channel].user = address;
+    console.log("My member list: " + JSON.stringify(client.channels[client.channel]));
 
-    var copiedLog = JSON.parse(JSON.stringify(client.log));
-    release();
-    res.json({ success: true, log: copiedLog });
-  });
+    // Parse the log object into a Tree.
+    var peerLog = new Tree(log);
+
+    lock.writeLock(function(release) {
+      // Merge the log with my log.
+      client.log.merge(peerLog);
+
+      console.log("My log after merging: \n" + JSON.stringify(client.log));
+
+      var copiedLog = JSON.parse(JSON.stringify(client.log));
+      release();
+      res.json({ success: true, matches: true, log: copiedLog });
+    });
+  }
 }
 
 // Syncs the log and chat channel members list.
@@ -45,25 +68,37 @@ exports.sync = function(req, res) {
   var members = req.body.members;
   var log = req.body.log;
 
-  console.log("Received chat log: \n" + JSON.stringify(log));
-  client.channels[client.channel][user] = address;
-  console.log("My member list: " + JSON.stringify(client.channels[client.channel]));
+  if (_.has(req.body, "logHash")) {
+    lock.readLock(function(release) {
+      if (client.log.hashCode() === req.body.logHash) {
+        res.json({ success: true, matches: true });
+      } else {
+        res.json({ success: true, matches: false });
+      }
 
-  // Parse the log object into a Tree.
-  var peerLog = new Tree(log);
+      release();
+    });
+  } else {
+    console.log("Received chat log: \n" + JSON.stringify(log));
+    client.channels[client.channel][user] = address;
+    console.log("My member list: " + JSON.stringify(client.channels[client.channel]));
 
-  lock.writeLock(function(release) {
-    // Merge the log with my log.
-    client.log.merge(peerLog);
+    // Parse the log object into a Tree.
+    var peerLog = new Tree(log);
 
-    console.log("My log after merging: \n" + JSON.stringify(client.log));
+    lock.writeLock(function(release) {
+      // Merge the log with my log.
+      client.log.merge(peerLog);
 
-    // TODO: Merge chat channel members as well.
+      console.log("My log after merging: \n" + JSON.stringify(client.log));
 
-    var copiedLog = JSON.parse(JSON.stringify(client.log));
-    release();
-    res.json({ success: true, log: copiedLog });
-  });
+      // TODO: Merge chat channel members as well.
+
+      var copiedLog = JSON.parse(JSON.stringify(client.log));
+      release();
+      res.json({ success: true, matches: true, log: copiedLog });
+    });
+  }
 }
 
 // Sends message to everyone in the channel.
@@ -72,6 +107,8 @@ exports.sendMessageToChannel = function(req, response) {
 
   var log;
   lock.writeLock(function(release) {
+    var oldLogHash = client.log.hashCode();
+
     // Add message to my log.
     var node = new Node(msg);
     client.log.leaves.forEach(function(leaf, index) {
@@ -95,7 +132,7 @@ exports.sendMessageToChannel = function(req, response) {
         address = members[user];
         // TODO: This is asynchronous, so we should be able to reply to the user sending the message immediately.
         // If we failed to send the message out, we should add that message to the queue of things we need to send to that user and try again later.
-        sendMessageToUser(address, msg, log);
+        sendMessageToUser(address, msg, node._id, log, oldLogHash);
       }
     });
 
@@ -108,7 +145,7 @@ exports.sendMessageToChannel = function(req, response) {
 }
 
 // Sends message to the particular destination.
-sendMessageToUser = function(dst, msg, log) {
+sendMessageToUser = function(dst, msg, nodeID, log, oldLogHash) {
   console.log("Sending message " + msg + " to " + dst + "/receiveMessage");
   console.log("Sending client log: \n" + JSON.stringify(log));
   request.post(
@@ -118,7 +155,8 @@ sendMessageToUser = function(dst, msg, log) {
         user: client.username,
         address: client.address,
         message: msg,
-        log: log,
+        messageID: nodeID,
+        logHash: oldLogHash,
         partition: client.partition
       }
     },
@@ -127,16 +165,40 @@ sendMessageToUser = function(dst, msg, log) {
         console.log("Received response body " + JSON.stringify(body));
         client.inactiveUsers.delete(dst);
 
-        // Parse the object into a Tree.
-        var peerLog = new Tree(body.log);
+        if (!body.matches) {
+          request.post(
+            dst + "/receiveMessage",
+            {
+              json: {
+                user: client.username,
+                address: client.address,
+                message: msg,
+                log: log,
+                partition: client.partition
+              }
+            },
+            function(err, res, body) {
+              if (!err && res.statusCode == 200) {
+                console.log("Received response body " + JSON.stringify(body));
+                client.inactiveUsers.delete(dst);
 
-        lock.writeLock(function(release) {
-          // Merge the returned log with my log.
-          client.log.merge(peerLog);
+                // Parse the object into a Tree.
+                var peerLog = new Tree(body.log);
 
-          console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));   
-          release();
-        });
+                lock.writeLock(function(release) {
+                  // Merge the returned log with my log.
+                  client.log.merge(peerLog);
+
+                  console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));   
+                  release();
+                });
+              } else {
+                // We didn't successfully send the message to the user, so we'll try again later.
+                client.inactiveUsers.add(dst);
+              }
+            }
+          );
+        }
       } else {
         // We didn't successfully send the message to the user, so we'll try again later.
         client.inactiveUsers.add(dst);
@@ -148,43 +210,65 @@ sendMessageToUser = function(dst, msg, log) {
 syncWithPeer = function(dst) {
   console.log("Syncing with user at address " + dst);
 
-  var log;
+  var log, logHash;
   lock.readLock(function(release) {
     log = JSON.parse(JSON.stringify(client.log));
+    logHash = client.log.hashCode();
     release();
+
+    request.post(
+      dst + "/sync",
+      {
+        json: {
+          user: client.username,
+          address: client.address,
+          members: client.channels[client.channel],
+          logHash: logHash,
+          partition: client.partition
+        }
+      },
+      function(err, res, body) {
+        if (!err && res.statusCode == 200) {
+          console.log("Received response body " + JSON.stringify(body));
+          client.inactiveUsers.delete(dst);
+
+          if (!body.matches) {
+            request.post(
+              dst + "/sync",
+              {
+                json: {
+                  user: client.username,
+                  address: client.address,
+                  members: client.channels[client.channel],
+                  log: log,
+                  partition: client.partition
+                }
+              },
+              function(err, res, body) {
+                if (!err && res.statusCode == 200) {
+                  console.log("Received response body " + JSON.stringify(body));
+                  client.inactiveUsers.delete(dst);
+
+                  lock.writeLock(function(release) {
+                    // Parse the object into a Tree.
+                    var peerLog = new Tree(body.log);
+
+                    // Merge the returned log with my log.
+                    client.log.merge(peerLog);
+
+                    console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
+
+                    // TODO: Merge chat channel members lists as well.
+                    release();
+                  });
+                }
+              }
+            );
+          }
+        }
+      }
+    );
   });
-
-  request.post(
-    dst + "/sync",
-    {
-      json: {
-        user: client.username,
-        address: client.address,
-        members: client.channels[client.channel],
-        log: log,
-        partition: client.partition
-      }
-    },
-    function(err, res, body) {
-      if (!err && res.statusCode == 200) {
-        console.log("Received response body " + JSON.stringify(body));
-        client.inactiveUsers.delete(dst);
-
-        lock.writeLock(function(release) {
-          // Parse the object into a Tree.
-          var peerLog = new Tree(body.log);
-
-          // Merge the returned log with my log.
-          client.log.merge(peerLog);
-
-          console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
-
-          // TODO: Merge chat channel members lists as well.
-          release();
-        });
-      }
-    }
-  );
 }
 
 // Syncs chat log and chat channel members with another user.
