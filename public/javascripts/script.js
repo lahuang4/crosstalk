@@ -247,10 +247,11 @@ $(document).ready(function() {
 
   $("#partition-button").click(function() {
     console.log("Partition set!");
+    client.partition = $("#partition-input").val();
 
     $.post(server + "/setPartition",
     {
-      partition: $("#partition-input").val()
+      partition: client.partition
     });
   });
 });

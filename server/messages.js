@@ -42,7 +42,7 @@ exports.receiveMessage = function(req, res) {
     });
   } else {
     console.log("Received chat log: \n" + JSON.stringify(log));
-    client.channels[client.channel].user = address;
+    client.channels[client.channel][user] = address;
     console.log("My member list: " + JSON.stringify(client.channels[client.channel]));
 
     // Parse the log object into a Tree.
