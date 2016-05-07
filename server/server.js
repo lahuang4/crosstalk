@@ -26,6 +26,20 @@ var partition = function(req, res, next) {
 }
 
 // Server methods
+app.post('/hello', partition, function(req, res) {
+  // Add person to your users
+  exports.channels[exports.channel][req.body.username] = req.body.address;
+  console.log("Hello " + req.body.username + "! My members list is now " + JSON.stringify(exports.channels[exports.channel]));
+  res.json({ success: true });
+});
+
+app.post('/goodbye', partition, function(req, res) {
+  // Remove person from your users
+  delete exports.channels[exports.channel][req.body.username];
+  console.log("Goodbye " + req.body.username + "! My members list is now " + JSON.stringify(exports.channels[exports.channel]));
+  res.json({ success: true });
+});
+
 app.post('/receiveMessage', partition, function(req, res) {
   messages.receiveMessage(req, res);
 });
@@ -69,6 +83,7 @@ app.post('/sendMessage', function(req, res) {
 
 app.post('/setPartition', function(req, res) {
   exports.partition = req.body.partition;
+  console.log("Set partition to be " + exports.partition);
 });
 
 app.post('/getLog', function(req, res) {
