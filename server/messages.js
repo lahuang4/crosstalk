@@ -92,8 +92,6 @@ exports.sync = function(req, res) {
 
       console.log("My log after merging: \n" + JSON.stringify(client.log));
 
-      // TODO: Merge chat channel members as well.
-
       var copiedLog = JSON.parse(JSON.stringify(client.log));
       release();
       res.json({ success: true, matches: true, log: copiedLog });
@@ -120,7 +118,7 @@ exports.sendMessageToChannel = function(req, response) {
 
     console.log("In sendMessage, added new node as leaf. My log: " + JSON.stringify(client.log));
 
-    // copy the tree
+    // Copy the tree
     log = new Tree(JSON.parse(JSON.stringify(client.log)));
     release();
 
@@ -130,8 +128,6 @@ exports.sendMessageToChannel = function(req, response) {
     Object.keys(members).forEach(function(user, index) {
       if (user != client.username) {
         address = members[user];
-        // TODO: This is asynchronous, so we should be able to reply to the user sending the message immediately.
-        // If we failed to send the message out, we should add that message to the queue of things we need to send to that user and try again later.
         sendMessageToUser(address, msg, node._id, log, oldLogHash);
       }
     });
@@ -258,7 +254,6 @@ syncWithPeer = function(dst) {
 
                     console.log("Merged returned log. My log: \n" + JSON.stringify(client.log));
 
-                    // TODO: Merge chat channel members lists as well.
                     release();
                   });
                 }

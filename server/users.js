@@ -10,7 +10,6 @@ exports.login = function(req, response) {
   var username = req.body.username;
   console.log("Attempting to log in user " + username);
 
-  // TODO: include address (how would you get this?)
   request.post(
     client.directory + "/login",
     {

@@ -6,7 +6,6 @@ var server = "http://localhost:4000";
 function refreshChatLog() {
   $.post(server + "/getLog",
   {
-    // TODO: Maybe some sort of authorization in the future to make these channels more secure?
     channel: client.channel
   })
   .done(function(data) {
@@ -56,13 +55,13 @@ function displayChatLog(log) {
 
         if (child.parents.length === 1) {
           if (node.children.length === 1) {
-            // it's a continuation
+            // It's a continuation
             var newMessage = $("<span class='message'></span>");
             newMessage.text(child.value);
             $("." + nodeID).append(newMessage)
               .addClass(childID);
           } else {
-            // it's a split
+            // It's a split
             var newMessageBlock = $("<div class='message-block'></div>");
             var newMessage = $("<span class='message'></span>");
             var percentWidth = 100 / node.children.length;
@@ -74,7 +73,7 @@ function displayChatLog(log) {
             $("." + nodeID + " > .message-row").last().append(newMessageBlock);
           }
         } else {
-          // it's a merge
+          // It's a merge
           var newMessage = $("<span class='message'></span>");
           newMessage.text(child.value);
 
@@ -91,12 +90,12 @@ function displayChatLog(log) {
     });
   }
 
-  // normalize the height of each message block in the each message row (so borders aren't wonky)
+  // Normalize the height of each message block in the each message row (so borders aren't wonky)
   $(".message-row").each(function() {
     var children = $(this).children();
 
     if (children.length === 0) {
-      $(this).remove(); // delete all message-rows with no children (to prevent weird rendering problems)
+      $(this).remove(); // Delete all message-rows with no children (to prevent weird rendering problems)
     } else {
       var maxHeight = 0;
       children.each(function() {
@@ -125,7 +124,6 @@ $(document).ready(function() {
   $("#partition").hide();
 
   // Refresh the chat log once in a while to receive new updates if we haven't been sending anything.
-  // TODO: Push notifications instead of having to poll for updates?
   setInterval(function() {
     if (client.username && client.channel) {
       refreshChatLog();
@@ -193,7 +191,6 @@ $(document).ready(function() {
       })
       .done(function(data) {
         console.log("Received response: " + JSON.stringify(data));
-        // TODO: use the returned members (display a list of chat members?)
 
         client.channel = $("#channel-input").val();
         client.log = data.log;
