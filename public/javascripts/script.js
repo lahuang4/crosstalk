@@ -91,14 +91,19 @@ function displayChatLog(log) {
   // normalize the height of each message block in the each message row (so borders aren't wonky)
   $(".message-row").each(function() {
     var children = $(this).children();
-    var maxHeight = 0;
-    children.each(function() {
-      maxHeight = Math.max(maxHeight, $(this).height());
-    });
 
-    children.each(function() {
-      $(this).height(maxHeight);
-    });
+    if (children.length === 0) {
+      $(this).remove(); // delete all message-rows with no children (to prevent weird rendering problems)
+    } else {
+      var maxHeight = 0;
+      children.each(function() {
+        maxHeight = Math.max(maxHeight, $(this).height());
+      });
+
+      children.each(function() {
+        $(this).height(maxHeight);
+      });
+    }
   });
 
   // Scroll to the bottom of the chat.
