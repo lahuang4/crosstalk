@@ -62,6 +62,22 @@ exports.joinChannel = function(req, response) {
           client.channels[channel] = body.members;
           console.log("Successfully joined channel " + channel + ", which has members " + JSON.stringify(body.members) + ".");
 
+          // Tell all the members of the channel that you exist.
+          Object.keys(body.members).forEach(function(user, index) {
+            if (user != client.username) {
+              request.post(
+                body.members[user] + "/hello",
+                {
+                  json: {
+                    username: client.username,
+                    address: client.address
+                  }
+                },
+                function(err, res, body) {}
+              );
+            }
+          });
+
           // Get the latest version of the log from somebody.
           messages.syncWithRandomPeer();
           body.log = client.log;
@@ -110,4 +126,20 @@ exports.leaveChannel = function(req, response) {
       }
     }
   );
+
+  // Tell everybody that you're leaving.
+  Object.keys(client.channels[client.channel]).forEach(function(user, index) {
+    if (user != client.username) {
+      request.post(
+        client.channels[client.channel][user] + "/goodbye",
+        {
+          json: {
+            user: client.username,
+            address: client.address
+          }
+        },
+        function(err, res, body) {}
+      );
+    }
+  });
 }
