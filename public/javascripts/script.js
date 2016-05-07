@@ -125,7 +125,7 @@ $(document).ready(function() {
     if (client.username && client.channel) {
       refreshChatLog();
     }
-  }, 1000);
+  }, 250);
 
   $("#user-input").keyup(function(event) {
     if(event.keyCode == 13) {

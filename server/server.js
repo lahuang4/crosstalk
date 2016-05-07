@@ -88,7 +88,7 @@ app.listen(PORT);
 console.log("Running server on on port %s", PORT);
 
 // Sync log and chat channel members with a random neighbor.
-setInterval(messages.syncWithRandomPeer, 1000); // TODO: 500 msec or fewer
+setInterval(messages.syncWithRandomPeer, 500);
 
 // Sync latest log with users that were inactive -- users we haven't heard back from upon trying to contact them.
 setInterval(messages.contactInactiveUsers, 3000);
