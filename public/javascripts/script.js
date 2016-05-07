@@ -16,6 +16,9 @@ function refreshChatLog() {
       console.log("I got chat log " + JSON.stringify(client.log));
       displayChatLog(client.log);
     }
+
+    // Refresh the known channel members.
+    $("#members").text(Object.keys(data.members).join(", "));
   });
 }
 
