@@ -70,7 +70,8 @@ exports.joinChannel = function(req, response) {
                 {
                   json: {
                     username: client.username,
-                    address: client.address
+                    address: client.address,
+                    partition: client.partition
                   }
                 },
                 function(err, res, body) {}
@@ -135,7 +136,8 @@ exports.leaveChannel = function(req, response) {
         {
           json: {
             user: client.username,
-            address: client.address
+            address: client.address,
+            partition: client.partition
           }
         },
         function(err, res, body) {}
